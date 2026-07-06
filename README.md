@@ -9,7 +9,8 @@ The goal is to keep project startup simple:
 - create a fresh project folder;
 - choose active surfaces: `web`, `mobile`, `backend`, `landing`, or `full-stack`;
 - record the bootstrap plan in the generated project README;
-- create starter workflow files by default: `PRD.md`, `TASKS.md`, `wiki/*`, and `prompts/*`;
+- create starter workflow files from `templates/project-pack`;
+- add optional feature checklists and prompts for payments, uploads/media, social auth, push notifications, admin, realtime, marketplace/catalog, and AI features;
 - remove the template Git remote by default so new projects do not push back to upstream.
 
 ## Quick Start
@@ -57,6 +58,13 @@ Create from a local checkout by running the script inside a local `vibe` repo co
 ## Cloud Deployment
 
 Project creation does not configure hosting or create cloud resources. Decide deployment later when the product is ready to launch.
+
+## Project Pack
+
+The app code comes from `di-sukharev/vibe`. The working instructions, checklists, and prompts come from this installer repo:
+
+- `templates/project-pack/base` - copied into every new project.
+- `templates/project-pack/features` - copied only for selected feature checkboxes.
 
 ## Verification
 

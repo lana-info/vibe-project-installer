@@ -13,6 +13,7 @@ Source checked:
 - Hosting is not shown in the GUI. The app creates projects in provider-neutral mode by default.
 - Default project type should be shown as `mobile + web`. Under the hood it includes `backend` as API support for auth, data, and app logic.
 - When `mobile` is active, use the upstream `mobile` branch. The `master` branch has only a mobile pointer README.
+- Project instructions, prompts, and feature checklists come from this installer repo under `templates/project-pack`, not from upstream.
 
 ## What Hosting Currently Means Internally
 

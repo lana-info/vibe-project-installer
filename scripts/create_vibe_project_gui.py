@@ -18,6 +18,48 @@ ROOT = Path(__file__).resolve().parents[1]
 CLI_SCRIPT = ROOT / "scripts" / "create-vibe-project.py"
 DEFAULT_PARENT = Path("D:/WorkOS")
 SURFACES = ("web", "backend", "mobile", "landing")
+FEATURES = (
+    (
+        "payments",
+        "Оплаты / подписки",
+        "Если проект будет продавать доступ, подписки, премиум-контент или платные функции.",
+    ),
+    (
+        "uploads-media",
+        "Загрузка файлов / медиа",
+        "Если пользователи будут загружать картинки, файлы, PDF, видео, экспорты или сгенерированные материалы.",
+    ),
+    (
+        "social-auth",
+        "Вход через Apple / Google",
+        "Если пользователи должны входить через Apple или Google, а не только через email/password.",
+    ),
+    (
+        "push-notifications",
+        "Push-уведомления",
+        "Если мобильное приложение должно отправлять напоминания, алерты или сообщения для возврата пользователя.",
+    ),
+    (
+        "admin",
+        "Админ-панель",
+        "Если нужен внутренний кабинет для управления пользователями, контентом, заказами или поддержкой.",
+    ),
+    (
+        "realtime",
+        "Realtime / чат",
+        "Если нужен чат, live-обновления, совместная работа, presence или мгновенные события.",
+    ),
+    (
+        "marketplace-catalog",
+        "Маркетплейс / каталог",
+        "Если в проекте будут публичные листинги, товары, поиск, продавцы или SEO-страницы каталога.",
+    ),
+    (
+        "ai-features",
+        "AI-функции",
+        "Если в продукте будет генерация, анализ, ассистент, prompt-flow или AI-автоматизация.",
+    ),
+)
 
 
 def find_python() -> str:
@@ -38,7 +80,7 @@ def find_python() -> str:
 class CreateProjectApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
-        self.title("Create Vibe Project - Mobile + Web")
+        self.title("Создать Vibe Project - Mobile + Web")
         self.geometry("760x560")
         self.minsize(680, 500)
 
@@ -51,6 +93,7 @@ class CreateProjectApp(tk.Tk):
             "mobile": tk.BooleanVar(value=True),
             "landing": tk.BooleanVar(value=False),
         }
+        self.feature_vars = {feature_id: tk.BooleanVar(value=False) for feature_id, _label, _description in FEATURES}
         self.output_queue: queue.Queue[tuple[str, str | int]] = queue.Queue()
         self.worker: threading.Thread | None = None
 
@@ -62,45 +105,62 @@ class CreateProjectApp(tk.Tk):
         frame.pack(fill=tk.BOTH, expand=True)
         frame.columnconfigure(1, weight=1)
 
-        ttk.Label(frame, text="Project name").grid(row=0, column=0, sticky="w", pady=6)
+        ttk.Label(frame, text="Название проекта").grid(row=0, column=0, sticky="w", pady=6)
         name_entry = ttk.Entry(frame, textvariable=self.project_name)
         name_entry.grid(row=0, column=1, columnspan=2, sticky="ew", pady=6)
         name_entry.bind("<KeyRelease>", self._sync_target_name)
 
-        ttk.Label(frame, text="Target folder").grid(row=1, column=0, sticky="w", pady=6)
+        ttk.Label(frame, text="Папка проекта").grid(row=1, column=0, sticky="w", pady=6)
         ttk.Entry(frame, textvariable=self.target_path).grid(row=1, column=1, sticky="ew", pady=6)
-        ttk.Button(frame, text="Browse", command=self._browse_target).grid(row=1, column=2, padx=(8, 0), pady=6)
+        ttk.Button(frame, text="Выбрать", command=self._browse_target).grid(row=1, column=2, padx=(8, 0), pady=6)
 
-        ttk.Label(frame, text="Project type").grid(row=2, column=0, sticky="nw", pady=6)
+        ttk.Label(frame, text="Тип проекта").grid(row=2, column=0, sticky="nw", pady=6)
         surfaces_frame = ttk.Frame(frame)
         surfaces_frame.grid(row=2, column=1, columnspan=2, sticky="w", pady=6)
         ttk.Label(
             surfaces_frame,
-            text="Default: Mobile + Web. Backend/API support is included for auth, data, and app logic.",
+            text="По умолчанию: Mobile + Web. Backend/API включён для логина, данных и логики приложения.",
         ).grid(row=0, column=0, columnspan=4, sticky="w")
         for index, surface in enumerate(SURFACES):
-            label = "backend/API support" if surface == "backend" else surface
+            label = "backend/API поддержка" if surface == "backend" else surface
             ttk.Checkbutton(
                 surfaces_frame,
                 text=label,
                 variable=self.surface_vars[surface],
             ).grid(row=1, column=index, padx=(0, 18), sticky="w")
 
+        ttk.Label(frame, text="Дополнительные функции").grid(row=3, column=0, sticky="nw", pady=6)
+        features_frame = ttk.Frame(frame)
+        features_frame.grid(row=3, column=1, columnspan=2, sticky="ew", pady=6)
+        features_frame.columnconfigure(0, weight=1)
+        for row, (feature_id, label, description) in enumerate(FEATURES):
+            ttk.Checkbutton(
+                features_frame,
+                text=label,
+                variable=self.feature_vars[feature_id],
+            ).grid(row=row * 2, column=0, sticky="w")
+            ttk.Label(
+                features_frame,
+                text=description,
+                wraplength=560,
+                foreground="#555555",
+            ).grid(row=row * 2 + 1, column=0, sticky="w", padx=(24, 0), pady=(0, 6))
+
         ttk.Checkbutton(
             frame,
-            text="Keep template remote",
+            text="Оставить remote шаблона",
             variable=self.keep_remote,
-        ).grid(row=3, column=1, sticky="w", pady=6)
+        ).grid(row=4, column=1, sticky="w", pady=6)
 
-        self.create_button = ttk.Button(frame, text="Create project", command=self._start_create)
-        self.create_button.grid(row=4, column=1, sticky="w", pady=(12, 8))
+        self.create_button = ttk.Button(frame, text="Создать проект", command=self._start_create)
+        self.create_button.grid(row=5, column=1, sticky="w", pady=(12, 8))
 
-        self.status = ttk.Label(frame, text="Ready")
-        self.status.grid(row=5, column=0, columnspan=3, sticky="w", pady=(0, 8))
+        self.status = ttk.Label(frame, text="Готово")
+        self.status.grid(row=6, column=0, columnspan=3, sticky="w", pady=(0, 8))
 
         self.log = tk.Text(frame, height=14, wrap="word")
-        self.log.grid(row=6, column=0, columnspan=3, sticky="nsew")
-        frame.rowconfigure(6, weight=1)
+        self.log.grid(row=7, column=0, columnspan=3, sticky="nsew")
+        frame.rowconfigure(7, weight=1)
 
     def _sync_target_name(self, _event: tk.Event) -> None:
         current = Path(self.target_path.get())
@@ -110,7 +170,7 @@ class CreateProjectApp(tk.Tk):
 
     def _browse_target(self) -> None:
         parent = filedialog.askdirectory(
-            title="Choose parent folder for the new project",
+            title="Выбери папку, внутри которой создать новый проект",
             initialdir=str(DEFAULT_PARENT if DEFAULT_PARENT.exists() else ROOT),
         )
         if not parent:
@@ -122,21 +182,24 @@ class CreateProjectApp(tk.Tk):
     def _selected_surfaces(self) -> list[str]:
         return [surface for surface, value in self.surface_vars.items() if value.get()]
 
+    def _selected_features(self) -> list[str]:
+        return [feature for feature, value in self.feature_vars.items() if value.get()]
+
     def _validate(self) -> bool:
         if not self.project_name.get().strip():
-            messagebox.showerror("Missing project name", "Enter a project name.")
+            messagebox.showerror("Нет названия проекта", "Введи название проекта.")
             return False
         if not self.target_path.get().strip():
-            messagebox.showerror("Missing target folder", "Choose a target folder.")
+            messagebox.showerror("Нет папки проекта", "Выбери папку проекта.")
             return False
         if not self._selected_surfaces():
-            messagebox.showerror("Missing surfaces", "Choose at least one active surface.")
+            messagebox.showerror("Не выбран тип проекта", "Выбери хотя бы одну активную часть проекта.")
             return False
         if Path(self.target_path.get()).exists():
-            messagebox.showerror("Target exists", "The target folder already exists. Choose a new folder.")
+            messagebox.showerror("Папка уже существует", "Такая папка уже существует. Выбери новое имя или другую папку.")
             return False
         if not CLI_SCRIPT.exists():
-            messagebox.showerror("Missing script", f"Cannot find {CLI_SCRIPT}")
+            messagebox.showerror("Не найден скрипт", f"Не могу найти {CLI_SCRIPT}")
             return False
         return True
 
@@ -147,7 +210,7 @@ class CreateProjectApp(tk.Tk):
             return
 
         self.log.delete("1.0", tk.END)
-        self.status.config(text="Creating project...")
+        self.status.config(text="Создаю проект...")
         self.create_button.config(state=tk.DISABLED)
         self.worker = threading.Thread(target=self._run_create, daemon=True)
         self.worker.start()
@@ -163,10 +226,13 @@ class CreateProjectApp(tk.Tk):
             "--active-surfaces",
             ",".join(self._selected_surfaces()),
         ]
+        features = self._selected_features()
+        if features:
+            command.extend(["--features", ",".join(features)])
         if self.keep_remote.get():
             command.append("--keep-template-remote")
 
-        self.output_queue.put(("line", "Creating project...\n"))
+        self.output_queue.put(("line", "Создаю проект...\n"))
         process = subprocess.Popen(
             command,
             cwd=str(ROOT),
@@ -194,11 +260,11 @@ class CreateProjectApp(tk.Tk):
                     code = int(value)
                     self.create_button.config(state=tk.NORMAL)
                     if code == 0:
-                        self.status.config(text=f"Done: {self.target_path.get()}")
-                        messagebox.showinfo("Project created", f"Created project:\n{self.target_path.get()}")
+                        self.status.config(text=f"Готово: {self.target_path.get()}")
+                        messagebox.showinfo("Проект создан", f"Создан проект:\n{self.target_path.get()}")
                     else:
-                        self.status.config(text=f"Failed with exit code {code}")
-                        messagebox.showerror("Project creation failed", "See the log in this window.")
+                        self.status.config(text=f"Ошибка, код {code}")
+                        messagebox.showerror("Проект не создан", "Посмотри лог в этом окне.")
         except queue.Empty:
             pass
         self.after(100, self._drain_output)
