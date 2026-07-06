@@ -66,6 +66,14 @@ The app code comes from `di-sukharev/vibe`. The working instructions, checklists
 - `templates/project-pack/base` - copied into every new project.
 - `templates/project-pack/features` - copied only for selected feature checkboxes.
 
+In the GUI, the `Настройки` tab lets you turn this documentation pack on or off.
+
+## Template Remote
+
+By default, the generated project removes the original `di-sukharev/vibe` Git remote. Leave it that way for normal new projects.
+
+Only enable `Оставить remote шаблона di-sukharev/vibe` if you are intentionally working on the upstream template itself.
+
 ## Upstream Archive
 
 The app creates new projects from the online upstream repo by default. Keep a local archive next to this installer for reference and updates:

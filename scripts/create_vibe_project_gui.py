@@ -81,12 +81,13 @@ class CreateProjectApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.title("Создать Vibe Project - Mobile + Web")
-        self.geometry("760x560")
-        self.minsize(680, 500)
+        self.geometry("920x720")
+        self.minsize(820, 620)
 
         self.project_name = tk.StringVar(value="My Vibe App")
         self.target_path = tk.StringVar(value=str(DEFAULT_PARENT / "My Vibe App"))
         self.keep_remote = tk.BooleanVar(value=False)
+        self.include_workflow_docs = tk.BooleanVar(value=True)
         self.surface_vars = {
             "web": tk.BooleanVar(value=True),
             "backend": tk.BooleanVar(value=True),
@@ -101,9 +102,38 @@ class CreateProjectApp(tk.Tk):
         self.after(100, self._drain_output)
 
     def _build_ui(self) -> None:
-        frame = ttk.Frame(self, padding=18)
-        frame.pack(fill=tk.BOTH, expand=True)
+        root = ttk.Frame(self, padding=14)
+        root.pack(fill=tk.BOTH, expand=True)
+        root.columnconfigure(0, weight=1)
+        root.rowconfigure(0, weight=1)
+
+        notebook = ttk.Notebook(root)
+        notebook.grid(row=0, column=0, sticky="nsew")
+
+        main_tab = ttk.Frame(notebook, padding=14)
+        settings_tab = ttk.Frame(notebook, padding=14)
+        notebook.add(main_tab, text="Проект")
+        notebook.add(settings_tab, text="Настройки")
+
+        self._build_main_tab(main_tab)
+        self._build_settings_tab(settings_tab)
+
+        bottom = ttk.Frame(root)
+        bottom.grid(row=1, column=0, sticky="ew", pady=(12, 0))
+        bottom.columnconfigure(1, weight=1)
+
+        self.create_button = ttk.Button(bottom, text="Создать проект", command=self._start_create)
+        self.create_button.grid(row=0, column=0, sticky="w")
+
+        self.status = ttk.Label(bottom, text="Готово")
+        self.status.grid(row=0, column=1, sticky="w", padx=(12, 0))
+
+        self.log = tk.Text(root, height=8, wrap="word")
+        self.log.grid(row=2, column=0, sticky="nsew", pady=(10, 0))
+
+    def _build_main_tab(self, frame: ttk.Frame) -> None:
         frame.columnconfigure(1, weight=1)
+        frame.rowconfigure(3, weight=1)
 
         ttk.Label(frame, text="Название проекта").grid(row=0, column=0, sticky="w", pady=6)
         name_entry = ttk.Entry(frame, textvariable=self.project_name)
@@ -114,53 +144,74 @@ class CreateProjectApp(tk.Tk):
         ttk.Entry(frame, textvariable=self.target_path).grid(row=1, column=1, sticky="ew", pady=6)
         ttk.Button(frame, text="Выбрать", command=self._browse_target).grid(row=1, column=2, padx=(8, 0), pady=6)
 
-        ttk.Label(frame, text="Тип проекта").grid(row=2, column=0, sticky="nw", pady=6)
-        surfaces_frame = ttk.Frame(frame)
-        surfaces_frame.grid(row=2, column=1, columnspan=2, sticky="w", pady=6)
+        surfaces = ttk.LabelFrame(frame, text="Тип проекта", padding=10)
+        surfaces.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(8, 10))
         ttk.Label(
-            surfaces_frame,
+            surfaces,
             text="По умолчанию: Mobile + Web. Backend/API включён для логина, данных и логики приложения.",
-        ).grid(row=0, column=0, columnspan=4, sticky="w")
+            wraplength=760,
+        ).grid(row=0, column=0, columnspan=4, sticky="w", pady=(0, 8))
         for index, surface in enumerate(SURFACES):
             label = "backend/API поддержка" if surface == "backend" else surface
-            ttk.Checkbutton(
-                surfaces_frame,
-                text=label,
-                variable=self.surface_vars[surface],
-            ).grid(row=1, column=index, padx=(0, 18), sticky="w")
+            ttk.Checkbutton(surfaces, text=label, variable=self.surface_vars[surface]).grid(
+                row=1, column=index, padx=(0, 22), sticky="w"
+            )
 
-        ttk.Label(frame, text="Дополнительные функции").grid(row=3, column=0, sticky="nw", pady=6)
-        features_frame = ttk.Frame(frame)
-        features_frame.grid(row=3, column=1, columnspan=2, sticky="ew", pady=6)
-        features_frame.columnconfigure(0, weight=1)
-        for row, (feature_id, label, description) in enumerate(FEATURES):
-            ttk.Checkbutton(
-                features_frame,
-                text=label,
-                variable=self.feature_vars[feature_id],
-            ).grid(row=row * 2, column=0, sticky="w")
-            ttk.Label(
-                features_frame,
-                text=description,
-                wraplength=560,
-                foreground="#555555",
-            ).grid(row=row * 2 + 1, column=0, sticky="w", padx=(24, 0), pady=(0, 6))
+        features = ttk.LabelFrame(frame, text="Дополнительные функции", padding=10)
+        features.grid(row=3, column=0, columnspan=3, sticky="nsew")
+        features.columnconfigure(0, weight=1)
+        features.columnconfigure(1, weight=1)
 
+        for index, (feature_id, label, description) in enumerate(FEATURES):
+            row = (index // 2) * 2
+            column = index % 2
+            cell = ttk.Frame(features)
+            cell.grid(row=row, column=column, sticky="new", padx=(0 if column == 0 else 12, 12 if column == 0 else 0), pady=(0, 8))
+            cell.columnconfigure(0, weight=1)
+            ttk.Checkbutton(cell, text=label, variable=self.feature_vars[feature_id]).grid(row=0, column=0, sticky="w")
+            ttk.Label(cell, text=description, wraplength=360, foreground="#555555").grid(
+                row=1, column=0, sticky="w", padx=(24, 0)
+            )
+
+    def _build_settings_tab(self, frame: ttk.Frame) -> None:
+        frame.columnconfigure(0, weight=1)
+
+        docs = ttk.LabelFrame(frame, text="Документация для работы", padding=12)
+        docs.grid(row=0, column=0, sticky="ew", pady=(0, 12))
+        docs.columnconfigure(0, weight=1)
         ttk.Checkbutton(
-            frame,
-            text="Оставить remote шаблона",
+            docs,
+            text="Добавить START_HERE, PRD, TASKS, чек-лист и готовые промпты",
+            variable=self.include_workflow_docs,
+        ).grid(row=0, column=0, sticky="w")
+        ttk.Label(
+            docs,
+            text=(
+                "Обычно лучше оставить включённым: эти файлы помогают сразу работать с проектом через Codex/AI. "
+                "Если выключить, будет скопирован только код шаблона."
+            ),
+            wraplength=760,
+            foreground="#555555",
+        ).grid(row=1, column=0, sticky="w", padx=(24, 0), pady=(4, 0))
+
+        git = ttk.LabelFrame(frame, text="Git / remote", padding=12)
+        git.grid(row=1, column=0, sticky="ew")
+        git.columnconfigure(0, weight=1)
+        ttk.Checkbutton(
+            git,
+            text="Оставить remote шаблона di-sukharev/vibe",
             variable=self.keep_remote,
-        ).grid(row=4, column=1, sticky="w", pady=6)
-
-        self.create_button = ttk.Button(frame, text="Создать проект", command=self._start_create)
-        self.create_button.grid(row=5, column=1, sticky="w", pady=(12, 8))
-
-        self.status = ttk.Label(frame, text="Готово")
-        self.status.grid(row=6, column=0, columnspan=3, sticky="w", pady=(0, 8))
-
-        self.log = tk.Text(frame, height=14, wrap="word")
-        self.log.grid(row=7, column=0, columnspan=3, sticky="nsew")
-        frame.rowconfigure(7, weight=1)
+        ).grid(row=0, column=0, sticky="w")
+        ttk.Label(
+            git,
+            text=(
+                "Для обычного нового проекта это НЕ нужно. По умолчанию remote шаблона удаляется, "
+                "чтобы случайно не отправить свои изменения в чужой репозиторий. "
+                "Включать только если ты специально дорабатываешь сам шаблон."
+            ),
+            wraplength=760,
+            foreground="#555555",
+        ).grid(row=1, column=0, sticky="w", padx=(24, 0), pady=(4, 0))
 
     def _sync_target_name(self, _event: tk.Event) -> None:
         current = Path(self.target_path.get())
@@ -229,6 +280,8 @@ class CreateProjectApp(tk.Tk):
         features = self._selected_features()
         if features:
             command.extend(["--features", ",".join(features)])
+        if not self.include_workflow_docs.get():
+            command.append("--skip-workflow-docs")
         if self.keep_remote.get():
             command.append("--keep-template-remote")
 
