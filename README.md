@@ -65,6 +65,10 @@ Test-Path (Join-Path $target "README.md")
 Test-Path (Join-Path $target "backend\README.md")
 ```
 
+## Knowledge Base
+
+See `wiki/knowledge-base.md` for the maintainer notes, behavior summary, and change checklist.
+
 ## Current Scope
 
 This repo owns only the installer wrapper and workflow docs. It does not own the upstream `vibe` template source code.
