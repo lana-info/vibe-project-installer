@@ -66,6 +66,16 @@ The app code comes from `di-sukharev/vibe`. The working instructions, checklists
 - `templates/project-pack/base` - copied into every new project.
 - `templates/project-pack/features` - copied only for selected feature checkboxes.
 
+## Upstream Archive
+
+The app creates new projects from the online upstream repo by default. Keep a local archive next to this installer for reference and updates:
+
+```powershell
+.\scripts\sync-upstream-archive.ps1
+```
+
+Default archive path: `D:\WorkOS\vibe-upstream-archive`.
+
 ## Verification
 
 Run a local smoke install into a scratch folder:

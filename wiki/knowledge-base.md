@@ -18,6 +18,7 @@ The installer should stay focused:
 - `START_HERE.md` - shortest onboarding path for agents and maintainers.
 - `TASKS.md` - small backlog for this wrapper project.
 - `scripts/bootstrap-project.ps1` - the installer implementation.
+- `scripts/sync-upstream-archive.ps1` - keeps a local copy of upstream `di-sukharev/vibe` outside this repo.
 - `templates/project-pack/` - workflow, prompt, and feature checklist templates copied into generated projects.
 - `examples/` - copyable example commands.
 - `AGENTS.md` - local agent rules and safety constraints.
