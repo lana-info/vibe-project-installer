@@ -18,6 +18,17 @@ ROOT = Path(__file__).resolve().parents[1]
 CLI_SCRIPT = ROOT / "scripts" / "create-vibe-project.py"
 DEFAULT_PARENT = Path("D:/WorkOS")
 SURFACES = ("web", "backend", "mobile", "landing")
+COLORS = {
+    "bg": "#f6f7fb",
+    "surface": "#ffffff",
+    "surface_alt": "#f1f4f9",
+    "border": "#d9e0ec",
+    "text": "#172033",
+    "muted": "#5d6880",
+    "accent": "#2563eb",
+    "accent_hover": "#1d4ed8",
+    "success": "#0f766e",
+}
 FEATURES = (
     (
         "payments",
@@ -83,6 +94,7 @@ class CreateProjectApp(tk.Tk):
         self.title("Создать Vibe Project - Mobile + Web")
         self.geometry("920x720")
         self.minsize(820, 620)
+        self.configure(bg=COLORS["bg"])
 
         self.project_name = tk.StringVar(value="My Vibe App")
         self.target_path = tk.StringVar(value=str(DEFAULT_PARENT / "My Vibe App"))
@@ -98,58 +110,126 @@ class CreateProjectApp(tk.Tk):
         self.output_queue: queue.Queue[tuple[str, str | int]] = queue.Queue()
         self.worker: threading.Thread | None = None
 
+        self._configure_style()
         self._build_ui()
         self.after(100, self._drain_output)
 
+    def _configure_style(self) -> None:
+        style = ttk.Style(self)
+        try:
+            style.theme_use("clam")
+        except tk.TclError:
+            pass
+
+        default_font = ("Segoe UI", 10)
+        heading_font = ("Segoe UI", 18, "bold")
+        subheading_font = ("Segoe UI", 10)
+        label_font = ("Segoe UI", 10, "bold")
+
+        style.configure(".", font=default_font, background=COLORS["bg"], foreground=COLORS["text"])
+        style.configure("App.TFrame", background=COLORS["bg"])
+        style.configure("Panel.TFrame", background=COLORS["surface"])
+        style.configure("Card.TFrame", background=COLORS["surface"], relief="flat")
+        style.configure("Card.TLabelframe", background=COLORS["surface"], bordercolor=COLORS["border"], relief="solid")
+        style.configure(
+            "Card.TLabelframe.Label",
+            background=COLORS["surface"],
+            foreground=COLORS["text"],
+            font=label_font,
+        )
+        style.configure("Hero.TFrame", background=COLORS["text"])
+        style.configure("HeroTitle.TLabel", background=COLORS["text"], foreground="#ffffff", font=heading_font)
+        style.configure("HeroText.TLabel", background=COLORS["text"], foreground="#d8deea", font=subheading_font)
+        style.configure("TLabel", background=COLORS["bg"], foreground=COLORS["text"])
+        style.configure("Panel.TLabel", background=COLORS["surface"], foreground=COLORS["text"])
+        style.configure("Muted.TLabel", background=COLORS["surface"], foreground=COLORS["muted"])
+        style.configure("Field.TLabel", background=COLORS["surface"], foreground=COLORS["text"], font=label_font)
+        style.configure("FeatureTitle.TLabel", background=COLORS["surface"], foreground=COLORS["text"], font=label_font)
+        style.configure("FeatureText.TLabel", background=COLORS["surface"], foreground=COLORS["muted"])
+        style.configure("TEntry", fieldbackground="#ffffff", bordercolor=COLORS["border"], lightcolor=COLORS["border"])
+        style.configure("TNotebook", background=COLORS["bg"], borderwidth=0)
+        style.configure("TNotebook.Tab", padding=(18, 9), background=COLORS["surface_alt"], foreground=COLORS["muted"])
+        style.map("TNotebook.Tab", background=[("selected", COLORS["surface"])], foreground=[("selected", COLORS["text"])])
+        style.configure("TCheckbutton", background=COLORS["surface"], foreground=COLORS["text"])
+        style.map("TCheckbutton", background=[("active", COLORS["surface"])])
+        style.configure("Accent.TButton", background=COLORS["accent"], foreground="#ffffff", padding=(18, 10), borderwidth=0)
+        style.map("Accent.TButton", background=[("active", COLORS["accent_hover"]), ("pressed", COLORS["accent_hover"])])
+        style.configure("Secondary.TButton", padding=(12, 8), borderwidth=1)
+
     def _build_ui(self) -> None:
-        root = ttk.Frame(self, padding=14)
+        root = ttk.Frame(self, padding=18, style="App.TFrame")
         root.pack(fill=tk.BOTH, expand=True)
         root.columnconfigure(0, weight=1)
-        root.rowconfigure(0, weight=1)
+        root.rowconfigure(1, weight=1)
+
+        hero = ttk.Frame(root, padding=(22, 18), style="Hero.TFrame")
+        hero.grid(row=0, column=0, sticky="ew", pady=(0, 14))
+        hero.columnconfigure(0, weight=1)
+        ttk.Label(hero, text="Vibe Project Creator", style="HeroTitle.TLabel").grid(row=0, column=0, sticky="w")
+        ttk.Label(
+            hero,
+            text="Красивый старт нового mobile + web проекта: код из upstream, рабочие промпты и чек-листы из этого installer.",
+            style="HeroText.TLabel",
+            wraplength=820,
+        ).grid(row=1, column=0, sticky="w", pady=(6, 0))
 
         notebook = ttk.Notebook(root)
-        notebook.grid(row=0, column=0, sticky="nsew")
+        notebook.grid(row=1, column=0, sticky="nsew")
 
-        main_tab = ttk.Frame(notebook, padding=14)
-        settings_tab = ttk.Frame(notebook, padding=14)
+        main_tab = ttk.Frame(notebook, padding=16, style="Panel.TFrame")
+        settings_tab = ttk.Frame(notebook, padding=16, style="Panel.TFrame")
         notebook.add(main_tab, text="Проект")
         notebook.add(settings_tab, text="Настройки")
 
         self._build_main_tab(main_tab)
         self._build_settings_tab(settings_tab)
 
-        bottom = ttk.Frame(root)
-        bottom.grid(row=1, column=0, sticky="ew", pady=(12, 0))
+        bottom = ttk.Frame(root, style="App.TFrame")
+        bottom.grid(row=2, column=0, sticky="ew", pady=(14, 0))
         bottom.columnconfigure(1, weight=1)
 
-        self.create_button = ttk.Button(bottom, text="Создать проект", command=self._start_create)
+        self.create_button = ttk.Button(bottom, text="Создать проект", command=self._start_create, style="Accent.TButton")
         self.create_button.grid(row=0, column=0, sticky="w")
 
         self.status = ttk.Label(bottom, text="Готово")
         self.status.grid(row=0, column=1, sticky="w", padx=(12, 0))
 
         self.log = tk.Text(root, height=8, wrap="word")
-        self.log.grid(row=2, column=0, sticky="nsew", pady=(10, 0))
+        self.log.configure(
+            bg=COLORS["surface"],
+            fg=COLORS["text"],
+            insertbackground=COLORS["text"],
+            relief="flat",
+            highlightthickness=1,
+            highlightbackground=COLORS["border"],
+            padx=12,
+            pady=10,
+            font=("Consolas", 9),
+        )
+        self.log.grid(row=3, column=0, sticky="nsew", pady=(10, 0))
 
     def _build_main_tab(self, frame: ttk.Frame) -> None:
         frame.columnconfigure(1, weight=1)
         frame.rowconfigure(3, weight=1)
 
-        ttk.Label(frame, text="Название проекта").grid(row=0, column=0, sticky="w", pady=6)
+        ttk.Label(frame, text="Название проекта", style="Field.TLabel").grid(row=0, column=0, sticky="w", pady=6)
         name_entry = ttk.Entry(frame, textvariable=self.project_name)
         name_entry.grid(row=0, column=1, columnspan=2, sticky="ew", pady=6)
         name_entry.bind("<KeyRelease>", self._sync_target_name)
 
-        ttk.Label(frame, text="Папка проекта").grid(row=1, column=0, sticky="w", pady=6)
+        ttk.Label(frame, text="Папка проекта", style="Field.TLabel").grid(row=1, column=0, sticky="w", pady=6)
         ttk.Entry(frame, textvariable=self.target_path).grid(row=1, column=1, sticky="ew", pady=6)
-        ttk.Button(frame, text="Выбрать", command=self._browse_target).grid(row=1, column=2, padx=(8, 0), pady=6)
+        ttk.Button(frame, text="Выбрать", command=self._browse_target, style="Secondary.TButton").grid(
+            row=1, column=2, padx=(8, 0), pady=6
+        )
 
-        surfaces = ttk.LabelFrame(frame, text="Тип проекта", padding=10)
+        surfaces = self._section(frame, "Тип проекта")
         surfaces.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(8, 10))
         ttk.Label(
             surfaces,
             text="По умолчанию: Mobile + Web. Backend/API включён для логина, данных и логики приложения.",
             wraplength=760,
+            style="Muted.TLabel",
         ).grid(row=0, column=0, columnspan=4, sticky="w", pady=(0, 8))
         for index, surface in enumerate(SURFACES):
             label = "backend/API поддержка" if surface == "backend" else surface
@@ -157,7 +237,7 @@ class CreateProjectApp(tk.Tk):
                 row=1, column=index, padx=(0, 22), sticky="w"
             )
 
-        features = ttk.LabelFrame(frame, text="Дополнительные функции", padding=10)
+        features = self._section(frame, "Дополнительные функции")
         features.grid(row=3, column=0, columnspan=3, sticky="nsew")
         features.columnconfigure(0, weight=1)
         features.columnconfigure(1, weight=1)
@@ -165,18 +245,18 @@ class CreateProjectApp(tk.Tk):
         for index, (feature_id, label, description) in enumerate(FEATURES):
             row = (index // 2) * 2
             column = index % 2
-            cell = ttk.Frame(features)
+            cell = ttk.Frame(features, padding=(10, 8), style="Card.TFrame")
             cell.grid(row=row, column=column, sticky="new", padx=(0 if column == 0 else 12, 12 if column == 0 else 0), pady=(0, 8))
             cell.columnconfigure(0, weight=1)
             ttk.Checkbutton(cell, text=label, variable=self.feature_vars[feature_id]).grid(row=0, column=0, sticky="w")
-            ttk.Label(cell, text=description, wraplength=360, foreground="#555555").grid(
+            ttk.Label(cell, text=description, wraplength=360, style="FeatureText.TLabel").grid(
                 row=1, column=0, sticky="w", padx=(24, 0)
             )
 
     def _build_settings_tab(self, frame: ttk.Frame) -> None:
         frame.columnconfigure(0, weight=1)
 
-        docs = ttk.LabelFrame(frame, text="Документация для работы", padding=12)
+        docs = self._section(frame, "Документация для работы")
         docs.grid(row=0, column=0, sticky="ew", pady=(0, 12))
         docs.columnconfigure(0, weight=1)
         ttk.Checkbutton(
@@ -191,10 +271,10 @@ class CreateProjectApp(tk.Tk):
                 "Если выключить, будет скопирован только код шаблона."
             ),
             wraplength=760,
-            foreground="#555555",
+            style="Muted.TLabel",
         ).grid(row=1, column=0, sticky="w", padx=(24, 0), pady=(4, 0))
 
-        git = ttk.LabelFrame(frame, text="Git / remote", padding=12)
+        git = self._section(frame, "Git / remote")
         git.grid(row=1, column=0, sticky="ew")
         git.columnconfigure(0, weight=1)
         ttk.Checkbutton(
@@ -210,8 +290,11 @@ class CreateProjectApp(tk.Tk):
                 "Включать только если ты специально дорабатываешь сам шаблон."
             ),
             wraplength=760,
-            foreground="#555555",
+            style="Muted.TLabel",
         ).grid(row=1, column=0, sticky="w", padx=(24, 0), pady=(4, 0))
+
+    def _section(self, parent: ttk.Frame, title: str) -> ttk.LabelFrame:
+        return ttk.LabelFrame(parent, text=title, padding=12, style="Card.TLabelframe")
 
     def _sync_target_name(self, _event: tk.Event) -> None:
         current = Path(self.target_path.get())
