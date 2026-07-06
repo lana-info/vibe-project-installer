@@ -98,7 +98,6 @@ class CreateProjectApp(tk.Tk):
 
         self.project_name = tk.StringVar(value="My Vibe App")
         self.target_path = tk.StringVar(value=str(DEFAULT_PARENT / "My Vibe App"))
-        self.keep_remote = tk.BooleanVar(value=False)
         self.include_workflow_docs = tk.BooleanVar(value=True)
         self.surface_vars = {
             "web": tk.BooleanVar(value=True),
@@ -177,12 +176,12 @@ class CreateProjectApp(tk.Tk):
         notebook.grid(row=1, column=0, sticky="nsew")
 
         main_tab = ttk.Frame(notebook, padding=16, style="Panel.TFrame")
-        settings_tab = ttk.Frame(notebook, padding=16, style="Panel.TFrame")
+        features_tab = ttk.Frame(notebook, padding=16, style="Panel.TFrame")
         notebook.add(main_tab, text="Проект")
-        notebook.add(settings_tab, text="Настройки")
+        notebook.add(features_tab, text="Доп. функции")
 
         self._build_main_tab(main_tab)
-        self._build_settings_tab(settings_tab)
+        self._build_features_tab(features_tab)
 
         bottom = ttk.Frame(root, style="App.TFrame")
         bottom.grid(row=2, column=0, sticky="ew", pady=(14, 0))
@@ -237,27 +236,8 @@ class CreateProjectApp(tk.Tk):
                 row=1, column=index, padx=(0, 22), sticky="w"
             )
 
-        features = self._section(frame, "Дополнительные функции")
-        features.grid(row=3, column=0, columnspan=3, sticky="nsew")
-        features.columnconfigure(0, weight=1)
-        features.columnconfigure(1, weight=1)
-
-        for index, (feature_id, label, description) in enumerate(FEATURES):
-            row = (index // 2) * 2
-            column = index % 2
-            cell = ttk.Frame(features, padding=(10, 8), style="Card.TFrame")
-            cell.grid(row=row, column=column, sticky="new", padx=(0 if column == 0 else 12, 12 if column == 0 else 0), pady=(0, 8))
-            cell.columnconfigure(0, weight=1)
-            ttk.Checkbutton(cell, text=label, variable=self.feature_vars[feature_id]).grid(row=0, column=0, sticky="w")
-            ttk.Label(cell, text=description, wraplength=360, style="FeatureText.TLabel").grid(
-                row=1, column=0, sticky="w", padx=(24, 0)
-            )
-
-    def _build_settings_tab(self, frame: ttk.Frame) -> None:
-        frame.columnconfigure(0, weight=1)
-
         docs = self._section(frame, "Документация для работы")
-        docs.grid(row=0, column=0, sticky="ew", pady=(0, 12))
+        docs.grid(row=3, column=0, columnspan=3, sticky="ew")
         docs.columnconfigure(0, weight=1)
         ttk.Checkbutton(
             docs,
@@ -274,24 +254,25 @@ class CreateProjectApp(tk.Tk):
             style="Muted.TLabel",
         ).grid(row=1, column=0, sticky="w", padx=(24, 0), pady=(4, 0))
 
-        git = self._section(frame, "Git / remote")
-        git.grid(row=1, column=0, sticky="ew")
-        git.columnconfigure(0, weight=1)
-        ttk.Checkbutton(
-            git,
-            text="Оставить remote шаблона di-sukharev/vibe",
-            variable=self.keep_remote,
-        ).grid(row=0, column=0, sticky="w")
-        ttk.Label(
-            git,
-            text=(
-                "Для обычного нового проекта это НЕ нужно. По умолчанию remote шаблона удаляется, "
-                "чтобы случайно не отправить свои изменения в чужой репозиторий. "
-                "Включать только если ты специально дорабатываешь сам шаблон."
-            ),
-            wraplength=760,
-            style="Muted.TLabel",
-        ).grid(row=1, column=0, sticky="w", padx=(24, 0), pady=(4, 0))
+    def _build_features_tab(self, frame: ttk.Frame) -> None:
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(0, weight=1)
+
+        features = self._section(frame, "Дополнительные функции")
+        features.grid(row=0, column=0, sticky="nsew")
+        features.columnconfigure(0, weight=1)
+        features.columnconfigure(1, weight=1)
+
+        for index, (feature_id, label, description) in enumerate(FEATURES):
+            row = (index // 2) * 2
+            column = index % 2
+            cell = ttk.Frame(features, padding=(10, 8), style="Card.TFrame")
+            cell.grid(row=row, column=column, sticky="new", padx=(0 if column == 0 else 12, 12 if column == 0 else 0), pady=(0, 8))
+            cell.columnconfigure(0, weight=1)
+            ttk.Checkbutton(cell, text=label, variable=self.feature_vars[feature_id]).grid(row=0, column=0, sticky="w")
+            ttk.Label(cell, text=description, wraplength=360, style="FeatureText.TLabel").grid(
+                row=1, column=0, sticky="w", padx=(24, 0)
+            )
 
     def _section(self, parent: ttk.Frame, title: str) -> ttk.LabelFrame:
         return ttk.LabelFrame(parent, text=title, padding=12, style="Card.TLabelframe")
@@ -365,8 +346,6 @@ class CreateProjectApp(tk.Tk):
             command.extend(["--features", ",".join(features)])
         if not self.include_workflow_docs.get():
             command.append("--skip-workflow-docs")
-        if self.keep_remote.get():
-            command.append("--keep-template-remote")
 
         self.output_queue.put(("line", "Создаю проект...\n"))
         process = subprocess.Popen(
