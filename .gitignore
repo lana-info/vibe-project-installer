@@ -1,0 +1,6 @@
+.scratch/
+node_modules/
+dist/
+coverage/
+*.log
+*.tmp
