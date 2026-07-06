@@ -1,6 +1,8 @@
 # Vibe Project Installer
 
-Small PowerShell installer for creating new projects from the `di-sukharev/vibe` template.
+Small installer wrapper for creating new projects from the `di-sukharev/vibe` template.
+
+Use the Python CLI for day-to-day project creation. It calls the PowerShell installer under `scripts/bootstrap-project.ps1`.
 
 The goal is to keep project startup simple:
 
@@ -11,6 +13,16 @@ The goal is to keep project startup simple:
 - remove the template Git remote by default so new projects do not push back to upstream.
 
 ## Quick Start
+
+Create a web/backend project with the Python CLI:
+
+```powershell
+python .\scripts\create-vibe-project.py `
+  --target-path "D:\WorkOS\My App" `
+  --project-name "My App" `
+  --active-surfaces web,backend `
+  --hosting custom
+```
 
 Create a web/backend project from upstream:
 

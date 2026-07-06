@@ -28,6 +28,8 @@ function Resolve-Surfaces {
 
     if ($Requested -and $Requested.Count -gt 0) {
         $normalized = $Requested | ForEach-Object {
+            $_ -split ','
+        } | ForEach-Object {
             $value = $_.Trim().ToLowerInvariant()
             switch ($value) {
                 'full' { 'full-stack' }
