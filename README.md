@@ -8,20 +8,19 @@ The goal is to keep project startup simple:
 
 - create a fresh project folder;
 - choose active surfaces: `web`, `mobile`, `backend`, `landing`, or `full-stack`;
-- choose a hosting posture: `custom`, `none`, `digitalocean`, or `yandex`;
 - record the bootstrap plan in the generated project README;
+- create starter workflow files by default: `PRD.md`, `TASKS.md`, `wiki/*`, and `prompts/*`;
 - remove the template Git remote by default so new projects do not push back to upstream.
 
 ## Quick Start
 
-Create a web/backend project with the Python CLI:
+Create a mobile + web project with the Python CLI:
 
 ```powershell
 python .\scripts\create-vibe-project.py `
   --target-path "D:\WorkOS\My App" `
   --project-name "My App" `
-  --active-surfaces web,backend `
-  --hosting custom
+  --active-surfaces web,mobile,backend
 ```
 
 Create a web/backend project from upstream:
@@ -32,8 +31,7 @@ Create a web/backend project from upstream:
   -Branch master `
   -TargetPath "D:\WorkOS\My App" `
   -ProjectName "My App" `
-  -ActiveSurfaces web,backend `
-  -Hosting custom
+  -ActiveSurfaces web,backend
 ```
 
 Create from the mobile branch:
@@ -44,8 +42,7 @@ Create from the mobile branch:
   -Branch mobile `
   -TargetPath "D:\WorkOS\My Mobile App" `
   -ProjectName "My Mobile App" `
-  -ActiveSurfaces mobile,backend `
-  -Hosting custom
+  -ActiveSurfaces mobile,backend
 ```
 
 Create from a local checkout by running the script inside a local `vibe` repo copy:
@@ -54,16 +51,12 @@ Create from a local checkout by running the script inside a local `vibe` repo co
 .\scripts\bootstrap-project.ps1 `
   -TargetPath "D:\WorkOS\My Local App" `
   -ProjectName "My Local App" `
-  -ActiveSurfaces full-stack `
-  -Hosting custom
+  -ActiveSurfaces full-stack
 ```
 
-## Hosting Modes
+## Cloud Deployment
 
-- `custom`: provider-neutral default. Choose hosting later from product needs.
-- `none`: local-only. Do not configure deployment.
-- `digitalocean`: keep the upstream DigitalOcean runbook active.
-- `yandex`: keep the upstream Yandex Cloud runbook active.
+Project creation does not configure hosting or create cloud resources. Decide deployment later when the product is ready to launch.
 
 ## Verification
 
@@ -72,9 +65,11 @@ Run a local smoke install into a scratch folder:
 ```powershell
 $target = Join-Path $PWD ".scratch\vibe-installer-smoke"
 if (Test-Path $target) { Remove-Item -LiteralPath $target -Recurse -Force }
-.\scripts\bootstrap-project.ps1 -SourceUrl "https://github.com/di-sukharev/vibe.git" -Branch master -TargetPath $target -ProjectName "Smoke App" -ActiveSurfaces web,backend -Hosting custom
+.\scripts\bootstrap-project.ps1 -SourceUrl "https://github.com/di-sukharev/vibe.git" -Branch master -TargetPath $target -ProjectName "Smoke App" -ActiveSurfaces web,backend
 Test-Path (Join-Path $target "README.md")
 Test-Path (Join-Path $target "backend\README.md")
+Test-Path (Join-Path $target "PRD.md")
+Test-Path (Join-Path $target "prompts\code-review.md")
 ```
 
 ## Knowledge Base

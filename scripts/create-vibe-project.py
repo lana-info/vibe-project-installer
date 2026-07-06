@@ -11,8 +11,9 @@ from pathlib import Path
 
 
 DEFAULT_SOURCE_URL = "https://github.com/di-sukharev/vibe.git"
-DEFAULT_BRANCH = "master"
-HOSTING_MODES = ("custom", "none", "digitalocean", "yandex")
+DEFAULT_WEB_BRANCH = "master"
+DEFAULT_MOBILE_BRANCH = "mobile"
+HOSTING_MODES = ("custom", "none", "digitalocean")
 
 
 def parse_surfaces(value: str) -> list[str]:
@@ -31,6 +32,10 @@ def find_powershell() -> str:
 
 
 def build_command(args: argparse.Namespace, script_path: Path) -> list[str]:
+    branch = args.branch
+    if branch is None:
+        branch = DEFAULT_MOBILE_BRANCH if "mobile" in args.active_surfaces else DEFAULT_WEB_BRANCH
+
     command = [
         find_powershell(),
         "-NoProfile",
@@ -51,11 +56,14 @@ def build_command(args: argparse.Namespace, script_path: Path) -> list[str]:
     if args.source_url:
         command.extend(["-SourceUrl", args.source_url])
 
-    if args.branch:
-        command.extend(["-Branch", args.branch])
+    if branch:
+        command.extend(["-Branch", branch])
 
     if args.keep_template_remote:
         command.append("-KeepTemplateRemote")
+
+    if args.skip_workflow_docs:
+        command.append("-SkipWorkflowDocs")
 
     return command
 
@@ -77,7 +85,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--active-surfaces",
         type=parse_surfaces,
-        default=["web", "backend"],
+        default=["web", "mobile", "backend"],
         help="Comma-separated surfaces: web,mobile,backend,landing,full-stack.",
     )
     parser.add_argument(
@@ -87,19 +95,24 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--branch",
-        default=DEFAULT_BRANCH,
-        help="Template branch. Use an empty string for the source default branch.",
+        default=None,
+        help="Template branch. Defaults to mobile when mobile is active, otherwise master.",
     )
     parser.add_argument(
         "--hosting",
         choices=HOSTING_MODES,
         default="custom",
-        help="Hosting posture to write into the bootstrap plan.",
+        help="Advanced: cloud setup note to write into the bootstrap plan.",
     )
     parser.add_argument(
         "--keep-template-remote",
         action="store_true",
         help="Keep the template origin remote in the generated project.",
+    )
+    parser.add_argument(
+        "--skip-workflow-docs",
+        action="store_true",
+        help="Do not create starter PRD, TASKS, wiki, and prompts files.",
     )
     parser.add_argument(
         "--print-command",

@@ -18,7 +18,6 @@ ROOT = Path(__file__).resolve().parents[1]
 CLI_SCRIPT = ROOT / "scripts" / "create-vibe-project.py"
 DEFAULT_PARENT = Path("D:/WorkOS")
 SURFACES = ("web", "backend", "mobile", "landing")
-HOSTING_MODES = ("custom", "none", "digitalocean", "yandex")
 
 
 def find_python() -> str:
@@ -39,18 +38,17 @@ def find_python() -> str:
 class CreateProjectApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
-        self.title("Create Vibe Project")
+        self.title("Create Vibe Project - Mobile + Web")
         self.geometry("760x560")
         self.minsize(680, 500)
 
         self.project_name = tk.StringVar(value="My Vibe App")
         self.target_path = tk.StringVar(value=str(DEFAULT_PARENT / "My Vibe App"))
-        self.hosting = tk.StringVar(value="custom")
         self.keep_remote = tk.BooleanVar(value=False)
         self.surface_vars = {
             "web": tk.BooleanVar(value=True),
             "backend": tk.BooleanVar(value=True),
-            "mobile": tk.BooleanVar(value=False),
+            "mobile": tk.BooleanVar(value=True),
             "landing": tk.BooleanVar(value=False),
         }
         self.output_queue: queue.Queue[tuple[str, str | int]] = queue.Queue()
@@ -73,35 +71,36 @@ class CreateProjectApp(tk.Tk):
         ttk.Entry(frame, textvariable=self.target_path).grid(row=1, column=1, sticky="ew", pady=6)
         ttk.Button(frame, text="Browse", command=self._browse_target).grid(row=1, column=2, padx=(8, 0), pady=6)
 
-        ttk.Label(frame, text="Active surfaces").grid(row=2, column=0, sticky="nw", pady=6)
+        ttk.Label(frame, text="Project type").grid(row=2, column=0, sticky="nw", pady=6)
         surfaces_frame = ttk.Frame(frame)
         surfaces_frame.grid(row=2, column=1, columnspan=2, sticky="w", pady=6)
+        ttk.Label(
+            surfaces_frame,
+            text="Default: Mobile + Web. Backend/API support is included for auth, data, and app logic.",
+        ).grid(row=0, column=0, columnspan=4, sticky="w")
         for index, surface in enumerate(SURFACES):
+            label = "backend/API support" if surface == "backend" else surface
             ttk.Checkbutton(
                 surfaces_frame,
-                text=surface,
+                text=label,
                 variable=self.surface_vars[surface],
-            ).grid(row=0, column=index, padx=(0, 18), sticky="w")
-
-        ttk.Label(frame, text="Hosting").grid(row=3, column=0, sticky="w", pady=6)
-        hosting = ttk.Combobox(frame, textvariable=self.hosting, values=HOSTING_MODES, state="readonly")
-        hosting.grid(row=3, column=1, sticky="w", pady=6)
+            ).grid(row=1, column=index, padx=(0, 18), sticky="w")
 
         ttk.Checkbutton(
             frame,
             text="Keep template remote",
             variable=self.keep_remote,
-        ).grid(row=4, column=1, sticky="w", pady=6)
+        ).grid(row=3, column=1, sticky="w", pady=6)
 
         self.create_button = ttk.Button(frame, text="Create project", command=self._start_create)
-        self.create_button.grid(row=5, column=1, sticky="w", pady=(12, 8))
+        self.create_button.grid(row=4, column=1, sticky="w", pady=(12, 8))
 
         self.status = ttk.Label(frame, text="Ready")
-        self.status.grid(row=6, column=0, columnspan=3, sticky="w", pady=(0, 8))
+        self.status.grid(row=5, column=0, columnspan=3, sticky="w", pady=(0, 8))
 
         self.log = tk.Text(frame, height=14, wrap="word")
-        self.log.grid(row=7, column=0, columnspan=3, sticky="nsew")
-        frame.rowconfigure(7, weight=1)
+        self.log.grid(row=6, column=0, columnspan=3, sticky="nsew")
+        frame.rowconfigure(6, weight=1)
 
     def _sync_target_name(self, _event: tk.Event) -> None:
         current = Path(self.target_path.get())
@@ -163,8 +162,6 @@ class CreateProjectApp(tk.Tk):
             self.project_name.get().strip(),
             "--active-surfaces",
             ",".join(self._selected_surfaces()),
-            "--hosting",
-            self.hosting.get(),
         ]
         if self.keep_remote.get():
             command.append("--keep-template-remote")
