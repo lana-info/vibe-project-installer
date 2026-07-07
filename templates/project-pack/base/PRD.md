@@ -18,6 +18,10 @@ Describe what this product does and which user problem it solves.
 
 {{FEATURE_LIST}}
 
+## Deployment Plan
+
+{{DEPLOYMENT_PLAN}}
+
 ## Core Features
 
 1. TBD
@@ -31,4 +35,3 @@ Describe what this product does and which user problem it solves.
 ## Open Questions
 
 Keep this section empty before implementation. Move resolved answers into the sections above.
-

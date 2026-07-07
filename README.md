@@ -10,7 +10,8 @@ The goal is to keep project startup simple:
 - choose active surfaces: `web`, `mobile`, `backend`, `landing`, or `full-stack`;
 - record the bootstrap plan in the generated project README;
 - create starter workflow files from `templates/project-pack`;
-- add optional feature checklists and prompts for payments, uploads/media, social auth, push notifications, admin, realtime, marketplace/catalog, and AI features;
+- add optional feature checklists and prompts for payments, uploads/media, social auth, push notifications, background jobs, cron, E2E tests, admin, realtime, marketplace/catalog, and AI features;
+- record a documentation-only deployment plan: decide later, Hetzner, Timeweb, DigitalOcean, Hostinger, or custom hosting;
 - remove the template Git remote by default so new projects do not push back to upstream.
 
 ## Quick Start
@@ -58,6 +59,8 @@ Create from a local checkout by running the script inside a local `vibe` repo co
 ## Cloud Deployment
 
 Project creation does not configure hosting or create cloud resources. Decide deployment later when the product is ready to launch.
+
+The GUI can record a deployment plan for project docs: `Decide later`, `Hetzner`, `Timeweb`, `DigitalOcean`, `Hostinger`, or `Custom hosting`. This only writes checklists and prompts. It does not deploy, connect accounts, or create paid resources.
 
 ## Project Pack
 

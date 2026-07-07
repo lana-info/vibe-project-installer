@@ -51,6 +51,21 @@ FEATURES = (
         "Если мобильное приложение должно отправлять напоминания, алерты или сообщения для возврата пользователя.",
     ),
     (
+        "background-jobs",
+        "Background jobs",
+        "Если нужны фоновые задачи: обработка файлов, генерация, рассылки, webhooks, синхронизации или тяжелые операции.",
+    ),
+    (
+        "scheduled-tasks",
+        "Scheduled tasks / cron",
+        "Если нужны регулярные задачи по расписанию: отчеты, проверки оплат, очистка, обновления или обработка очередей.",
+    ),
+    (
+        "e2e-tests",
+        "Mobile + Web E2E tests",
+        "Если нужно автоматически проверять основные сценарии в мобильной и веб-версии: логин, оплата, профиль, главные экраны.",
+    ),
+    (
         "admin",
         "Админ-панель",
         "Если нужен внутренний кабинет для управления пользователями, контентом, заказами или поддержкой.",
@@ -70,6 +85,14 @@ FEATURES = (
         "AI-функции",
         "Если в продукте будет генерация, анализ, ассистент, prompt-flow или AI-автоматизация.",
     ),
+)
+DEPLOYMENT_PLANS = (
+    ("decide-later", "Решить позже", "По умолчанию: не привязываем проект к хостингу на старте."),
+    ("hetzner", "Hetzner", "Если планируешь VPS/сервер, Docker, Postgres и самостоятельную настройку деплоя."),
+    ("timeweb", "Timeweb", "Если хочешь запускать проект на Timeweb Cloud/VPS и хранить инструкции под этот путь."),
+    ("digitalocean", "DigitalOcean", "Если хочешь использовать готовые upstream runbooks: App Platform, Postgres, Static Sites, Spaces/CDN."),
+    ("hostinger", "Hostinger", "Если проект будет запускаться на Hostinger VPS/hosting и нужен отдельный checklist."),
+    ("custom", "Другой / custom", "Если хостинг будет выбран вручную: Render, Railway, Vercel, Netlify, Fly.io или другой."),
 )
 
 
@@ -99,6 +122,7 @@ class CreateProjectApp(tk.Tk):
         self.project_name = tk.StringVar(value="My Vibe App")
         self.target_path = tk.StringVar(value=str(DEFAULT_PARENT / "My Vibe App"))
         self.include_workflow_docs = tk.BooleanVar(value=True)
+        self.deployment_plan_label = tk.StringVar(value=DEPLOYMENT_PLANS[0][1])
         self.surface_vars = {
             "web": tk.BooleanVar(value=True),
             "backend": tk.BooleanVar(value=True),
@@ -236,8 +260,25 @@ class CreateProjectApp(tk.Tk):
                 row=1, column=index, padx=(0, 22), sticky="w"
             )
 
+        deployment = self._section(frame, "План хостинга")
+        deployment.grid(row=3, column=0, columnspan=3, sticky="ew", pady=(0, 10))
+        deployment.columnconfigure(1, weight=1)
+        ttk.Label(deployment, text="Где потом запускать", style="Field.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
+        deployment_combo = ttk.Combobox(
+            deployment,
+            textvariable=self.deployment_plan_label,
+            values=[label for _value, label, _description in DEPLOYMENT_PLANS],
+            state="readonly",
+            width=22,
+        )
+        deployment_combo.grid(row=0, column=1, sticky="w")
+        self.deployment_help = ttk.Label(deployment, text="", wraplength=760, style="Muted.TLabel")
+        self.deployment_help.grid(row=1, column=0, columnspan=2, sticky="w", pady=(6, 0))
+        deployment_combo.bind("<<ComboboxSelected>>", self._update_deployment_help)
+        self._update_deployment_help()
+
         docs = self._section(frame, "Документация для работы")
-        docs.grid(row=3, column=0, columnspan=3, sticky="ew")
+        docs.grid(row=4, column=0, columnspan=3, sticky="ew")
         docs.columnconfigure(0, weight=1)
         ttk.Checkbutton(
             docs,
@@ -258,7 +299,26 @@ class CreateProjectApp(tk.Tk):
         frame.columnconfigure(0, weight=1)
         frame.rowconfigure(0, weight=1)
 
-        features = self._section(frame, "Дополнительные функции")
+        canvas = tk.Canvas(frame, bg=COLORS["surface"], highlightthickness=0)
+        scrollbar = ttk.Scrollbar(frame, orient="vertical", command=canvas.yview)
+        canvas.grid(row=0, column=0, sticky="nsew")
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        container = ttk.Frame(canvas, style="Panel.TFrame")
+        window_id = canvas.create_window((0, 0), window=container, anchor="nw")
+
+        def sync_scroll_region(_event: tk.Event) -> None:
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        def sync_width(event: tk.Event) -> None:
+            canvas.itemconfigure(window_id, width=event.width)
+
+        container.bind("<Configure>", sync_scroll_region)
+        canvas.bind("<Configure>", sync_width)
+
+        container.columnconfigure(0, weight=1)
+        features = self._section(container, "Дополнительные функции")
         features.grid(row=0, column=0, sticky="nsew")
         features.columnconfigure(0, weight=1)
         features.columnconfigure(1, weight=1)
@@ -276,6 +336,15 @@ class CreateProjectApp(tk.Tk):
 
     def _section(self, parent: ttk.Frame, title: str) -> ttk.LabelFrame:
         return ttk.LabelFrame(parent, text=title, padding=12, style="Card.TLabelframe")
+
+    def _update_deployment_help(self, _event: tk.Event | None = None) -> None:
+        selected = self.deployment_plan_label.get()
+        description = next((description for _value, label, description in DEPLOYMENT_PLANS if label == selected), "")
+        self.deployment_help.config(text=description)
+
+    def _selected_deployment_plan(self) -> str:
+        selected = self.deployment_plan_label.get()
+        return next((value for value, label, _description in DEPLOYMENT_PLANS if label == selected), "decide-later")
 
     def _sync_target_name(self, _event: tk.Event) -> None:
         current = Path(self.target_path.get())
@@ -344,6 +413,7 @@ class CreateProjectApp(tk.Tk):
         features = self._selected_features()
         if features:
             command.extend(["--features", ",".join(features)])
+        command.extend(["--deployment-plan", self._selected_deployment_plan()])
         if not self.include_workflow_docs.get():
             command.append("--skip-workflow-docs")
 

@@ -44,6 +44,9 @@ These should be product/intake toggles first. They should write a bootstrap plan
 - Payments/subscriptions: mobile branch has App Store and Google Play IAP foundation plus backend verification.
 - Social auth: mobile branch has Apple and Google social auth docs and code.
 - Push notifications: mobile branch has Expo Push foundation and backend notification outbox.
+- Background jobs: upstream has a backend worker entry point; use it for uploads processing, generation, webhooks, email, sync, and other non-request work.
+- Scheduled tasks / cron: upstream has a backend cron entry point; use it for reports, cleanup, recurring checks, and queue recovery.
+- Mobile + web E2E tests: upstream has Maestro setup for mobile and browser/e2e structure for webapp.
 - Admin tools: not a dedicated upstream module; should be a generated product scope/checklist.
 - Realtime/chat/presence: not implemented as a ready module; upstream docs recommend Redis-compatible Pub/Sub only when horizontal scaling needs fanout.
 - Deployment extras: backend worker, backend cron, API instance size/count, static website/webapp release, storage/CDN.
@@ -51,5 +54,5 @@ These should be product/intake toggles first. They should write a bootstrap plan
 ## Suggested UI Grouping
 
 - Project type: `mobile + web` default, `web only`, `mobile only`, `landing/public site`, `full-stack`.
-- Core capabilities: auth, database, uploads/media, payments/subscriptions, social auth, push notifications, admin, realtime.
-- Cloud/deployment settings should stay out of the first GUI unless the user asks to plan launch.
+- Core capabilities: auth, database, uploads/media, payments/subscriptions, social auth, push notifications, background jobs, scheduled tasks, E2E tests, admin, realtime.
+- Deployment plan: decide later, Hetzner, Timeweb, DigitalOcean, Hostinger, or custom. This should stay documentation-only during project creation.

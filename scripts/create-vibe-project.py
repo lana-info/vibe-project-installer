@@ -16,11 +16,22 @@ DEFAULT_SOURCE_URL = "https://github.com/di-sukharev/vibe.git"
 DEFAULT_WEB_BRANCH = "master"
 DEFAULT_MOBILE_BRANCH = "mobile"
 HOSTING_MODES = ("custom", "none", "digitalocean")
+DEPLOYMENT_PLANS = {
+    "decide-later": "Decide later",
+    "hetzner": "Hetzner",
+    "timeweb": "Timeweb",
+    "digitalocean": "DigitalOcean",
+    "hostinger": "Hostinger",
+    "custom": "Custom hosting",
+}
 FEATURES = {
     "payments": "Payments / subscriptions",
     "uploads-media": "Uploads / media",
     "social-auth": "Social auth",
     "push-notifications": "Push notifications",
+    "background-jobs": "Background jobs",
+    "scheduled-tasks": "Scheduled tasks / cron",
+    "e2e-tests": "Mobile + web E2E tests",
     "admin": "Admin panel",
     "realtime": "Realtime / chat",
     "marketplace-catalog": "Marketplace / catalog",
@@ -99,6 +110,7 @@ def render_template(text: str, args: argparse.Namespace) -> str:
         "{{PROJECT_NAME}}": args.project_name,
         "{{ACTIVE_SURFACES}}": ", ".join(args.active_surfaces),
         "{{FEATURE_LIST}}": ", ".join(feature_names) if feature_names else "No extra feature packs selected yet.",
+        "{{DEPLOYMENT_PLAN}}": DEPLOYMENT_PLANS[args.deployment_plan],
     }
 
     for token, value in replacements.items():
@@ -198,6 +210,12 @@ def main(argv: list[str] | None = None) -> int:
         choices=HOSTING_MODES,
         default="custom",
         help="Advanced: cloud setup note to write into the bootstrap plan.",
+    )
+    parser.add_argument(
+        "--deployment-plan",
+        choices=tuple(DEPLOYMENT_PLANS),
+        default="decide-later",
+        help="Documentation-only deployment plan to add to project workflow files.",
     )
     parser.add_argument(
         "--keep-template-remote",
