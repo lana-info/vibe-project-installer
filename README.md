@@ -17,6 +17,8 @@ The goal is to keep project startup simple:
 
 ## Quick Start
 
+To open the GUI app on Windows, macOS, or Linux, see `RUN_APP.md`.
+
 Create a mobile + web project with the Python CLI:
 
 ```powershell
