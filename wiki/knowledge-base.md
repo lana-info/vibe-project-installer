@@ -23,6 +23,13 @@ The installer should stay focused:
 - `examples/` - copyable example commands.
 - `AGENTS.md` - local agent rules and safety constraints.
 
+## Generated Project Guidance
+
+- Frontend design: web starts from shadcn/ui-style components and then tunes them in the project's own design.
+- Mobile design: before feature work, create a small project-specific mobile component library instead of adding Tamagui by default.
+- Deployment docs: generated projects include provider notes for Hetzner, Timeweb, and Hostinger under `wiki/deployment-providers/`.
+- Deployment remains documentation-only during project creation; no hosting accounts, paid resources, or cloud services are created.
+
 ## Installer Behavior
 
 `scripts/bootstrap-project.ps1` accepts:

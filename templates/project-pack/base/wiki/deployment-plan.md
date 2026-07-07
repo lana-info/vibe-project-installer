@@ -7,10 +7,10 @@ Project creation does not deploy anything and does not create paid cloud resourc
 ## What This Choice Means
 
 - `Decide later`: keep the project provider-neutral until the product shape is clearer.
-- `Hetzner`: plan for VPS/server deployment, usually Docker, Postgres, backups, firewall, domains, and monitoring.
-- `Timeweb`: plan for Timeweb Cloud/VPS with the same production concerns: backend, database, static frontend, files, backups, logs.
+- `Hetzner`: plan with `wiki/deployment-providers/hetzner.md`.
+- `Timeweb`: plan with `wiki/deployment-providers/timeweb.md`.
 - `DigitalOcean`: upstream has the most detailed runbooks for App Platform, Managed Postgres, Static Sites, Spaces/CDN, worker, and cron.
-- `Hostinger`: plan for Hostinger VPS/hosting; verify Node/Bun, database, process manager, SSL, backups, and deployment workflow.
+- `Hostinger`: plan with `wiki/deployment-providers/hostinger.md`.
 - `Custom hosting`: choose the target later: Render, Railway, Vercel, Netlify, Fly.io, self-hosted VPS, or another provider.
 
 ## Before Launch
@@ -23,3 +23,9 @@ Project creation does not deploy anything and does not create paid cloud resourc
 - [ ] Define domains, SSL, backups, logs, monitoring, and rollback.
 - [ ] Keep secrets in the hosting provider's secret/env settings, not in git or chat.
 
+## Provider Notes
+
+- Hetzner: good fit for VPS/server-style deployment where you control Docker, Postgres, firewall, backups, and monitoring.
+- Timeweb: can be either App Platform-style deployment from a repository or VPS/cloud-server deployment.
+- Hostinger: can be managed Node.js Web Apps for simpler web apps, or VPS/Docker for full backend/database control.
+- DigitalOcean: upstream template already includes the deepest provider-specific runbook in `docs/DEPLOYMENT.md`.

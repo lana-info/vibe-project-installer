@@ -7,8 +7,9 @@ Open these files first:
 1. `PRD.md` - product goal and MVP.
 2. `TASKS.md` - ordered work plan.
 3. `wiki/how-to-work-with-ai.md` - how to work with Codex/AI agents.
-4. `wiki/deployment-plan.md` - hosting/deployment choice for later launch.
-5. `prompts/` - copy-ready prompts.
+4. `wiki/frontend-design.md` - web and mobile UI direction.
+5. `wiki/deployment-plan.md` - hosting/deployment choice for later launch.
+6. `prompts/` - copy-ready prompts.
 
 ## Current Setup
 
