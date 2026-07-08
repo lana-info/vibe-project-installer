@@ -87,10 +87,23 @@ On Windows, use `python` instead of `python3` if that is your installed command:
 python .\scripts\create_vibe_project_gui.py --self-test
 ```
 
+## Configure An Existing Project
+
+Use this when the project already exists and you only want to add vibe-coding docs/prompts:
+
+```powershell
+python .\scripts\install_project_pack_gui.py --target-path "D:\WorkOS\Existing App"
+```
+
+On macOS/Linux:
+
+```bash
+python3 scripts/install_project_pack_gui.py --target-path "/path/to/existing-app"
+```
+
 ## Notes
 
 - The app creates projects from the online upstream template by default.
 - It does not deploy hosting or create paid cloud resources.
 - The hosting choice only writes planning docs into the generated project.
 - Keep tokens, passwords, cookies, and `.env` values out of chat and git.
-

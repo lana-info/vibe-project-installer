@@ -9,14 +9,11 @@ If you are already inside another project and want to configure it for vibe codi
 Codex should run the existing-project installer, not the new-project creator:
 
 ```powershell
-python D:\WorkOS\vibe-project-installer\scripts\install-project-pack.py `
-  --target-path "<current-project-path>" `
-  --project-name "<project-folder-name>" `
-  --active-surfaces web,mobile,backend `
-  --deployment-plan decide-later
+python D:\WorkOS\vibe-project-installer\scripts\install_project_pack_gui.py `
+  --target-path "<current-project-path>"
 ```
 
-This adds workflow docs, prompts, frontend design guidance, and deployment planning docs without cloning upstream and without changing application code.
+This opens a setup window for workflow docs, prompts, frontend design guidance, deployment planning docs, and optional feature packs. It does not clone upstream and does not change application code.
 
 Optional feature packs can be added:
 
@@ -26,4 +23,3 @@ python D:\WorkOS\vibe-project-installer\scripts\install-project-pack.py `
   --features payments,uploads-media,e2e-tests `
   --deployment-plan hetzner
 ```
-

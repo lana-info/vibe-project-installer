@@ -22,6 +22,12 @@ To open the GUI app on Windows, macOS, or Linux, see `RUN_APP.md`.
 Install vibe-coding workflow docs into an existing project:
 
 ```powershell
+python .\scripts\install_project_pack_gui.py --target-path "D:\WorkOS\Existing App"
+```
+
+Or run it without the GUI:
+
+```powershell
 python .\scripts\install-project-pack.py `
   --target-path "D:\WorkOS\Existing App" `
   --project-name "Existing App" `
