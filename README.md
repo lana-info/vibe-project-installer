@@ -112,15 +112,24 @@ By default, the generated project removes the original `di-sukharev/vibe` Git re
 
 The GUI does not expose this setting because normal projects should not keep the template remote. The advanced CLI flag `--keep-template-remote` is only for intentionally working on the upstream template itself.
 
-## Upstream Archive
+## Template Archives
 
-The app creates new projects from the online upstream repo by default. Keep a local archive next to this installer for reference and updates:
+The app creates new projects from online template repos by default. Keep local archives next to this installer for backup, reference, and updates:
 
 ```powershell
 .\scripts\sync-upstream-archive.ps1
 ```
 
-Default archive path: `D:\WorkOS\vibe-upstream-archive`.
+Default archive paths:
+
+- `D:\WorkOS\vibe-upstream-archive` for `di-sukharev/vibe`.
+- `D:\WorkOS\vite-web-extension-upstream-archive` for `JohnBra/vite-web-extension`.
+
+Update one archive only:
+
+```powershell
+.\scripts\sync-upstream-archive.ps1 -Template chrome-extension
+```
 
 ## Verification
 

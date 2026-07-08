@@ -18,7 +18,7 @@ The installer should stay focused:
 - `START_HERE.md` - shortest onboarding path for agents and maintainers.
 - `TASKS.md` - small backlog for this wrapper project.
 - `scripts/bootstrap-project.ps1` - the installer implementation.
-- `scripts/sync-upstream-archive.ps1` - keeps a local copy of upstream `di-sukharev/vibe` outside this repo.
+- `scripts/sync-upstream-archive.ps1` - keeps local copies of upstream template repos outside this repo.
 - `templates/project-pack/` - workflow, prompt, and feature checklist templates copied into generated projects.
 - `examples/` - copyable example commands.
 - `AGENTS.md` - local agent rules and safety constraints.
@@ -31,6 +31,19 @@ The installer should stay focused:
 - Generated projects include Russian docs: `START_HERE.ru.md`, `PRD.ru.md`, `TASKS.ru.md`, and `wiki/ru/`.
 - Deployment docs: generated projects include provider notes for Hetzner, Timeweb, and Hostinger under `wiki/deployment-providers/`.
 - Deployment remains documentation-only during project creation; no hosting accounts, paid resources, or cloud services are created.
+
+## Local Template Archives
+
+Do not copy full upstream templates into this repo. Keep local backup checkouts next to it:
+
+- `D:\WorkOS\vibe-upstream-archive` from `https://github.com/di-sukharev/vibe.git`
+- `D:\WorkOS\vite-web-extension-upstream-archive` from `https://github.com/JohnBra/vite-web-extension.git`
+
+Refresh both with:
+
+```powershell
+.\scripts\sync-upstream-archive.ps1
+```
 
 ## Installer Behavior
 
