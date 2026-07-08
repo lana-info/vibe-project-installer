@@ -41,6 +41,7 @@ FEATURES = {
     "ai-features": "AI features",
     "design-starter": "Design starter",
 }
+CHROME_EXTENSION_FEATURES = {"design-starter"}
 
 
 def parse_surfaces(value: str) -> list[str]:
@@ -75,6 +76,19 @@ def normalize_surfaces(template: str, surfaces: list[str]) -> list[str]:
             if required not in normalized:
                 normalized.append(required)
     return normalized
+
+
+def normalize_features(template: str, features: list[str]) -> list[str]:
+    if template != "chrome-extension":
+        return features
+
+    invalid = [feature for feature in features if feature not in CHROME_EXTENSION_FEATURES]
+    if invalid:
+        raise argparse.ArgumentTypeError(
+            "Chrome extension projects only support docs and design-starter. "
+            f"Unsupported feature(s): {', '.join(invalid)}."
+        )
+    return features
 
 
 def find_powershell() -> str:
@@ -279,6 +293,7 @@ def main(argv: list[str] | None = None) -> int:
         args.active_surfaces = ["chrome-extension"] if args.template == "chrome-extension" else ["web", "mobile", "backend"]
     try:
         args.active_surfaces = normalize_surfaces(args.template, args.active_surfaces)
+        args.features = normalize_features(args.template, args.features)
     except argparse.ArgumentTypeError as exc:
         parser.error(str(exc))
 

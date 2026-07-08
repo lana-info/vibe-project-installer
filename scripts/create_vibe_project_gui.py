@@ -141,6 +141,7 @@ class CreateProjectApp(tk.Tk):
         }
         self.surface_checkbuttons: dict[str, ttk.Checkbutton] = {}
         self.feature_vars = {feature_id: tk.BooleanVar(value=False) for feature_id, _label, _description in FEATURES}
+        self.feature_checkbuttons: dict[str, ttk.Checkbutton] = {}
         self.output_queue: queue.Queue[tuple[str, str | int]] = queue.Queue()
         self.worker: threading.Thread | None = None
 
@@ -217,6 +218,7 @@ class CreateProjectApp(tk.Tk):
 
         self._build_main_tab(main_tab)
         self._build_features_tab(features_tab)
+        self._sync_template_controls()
 
         bottom = ttk.Frame(root, style="App.TFrame")
         bottom.grid(row=2, column=0, sticky="ew", pady=(14, 0))
@@ -327,8 +329,6 @@ class CreateProjectApp(tk.Tk):
         deployment_combo.bind("<<ComboboxSelected>>", self._update_deployment_help)
         self._update_deployment_help()
 
-        self._sync_surface_controls()
-
     def _build_features_tab(self, frame: ttk.Frame) -> None:
         frame.columnconfigure(0, weight=1)
         frame.rowconfigure(0, weight=1)
@@ -363,7 +363,9 @@ class CreateProjectApp(tk.Tk):
             cell = ttk.Frame(features, padding=(10, 8), style="Card.TFrame")
             cell.grid(row=row, column=column, sticky="new", padx=(0 if column == 0 else 12, 12 if column == 0 else 0), pady=(0, 8))
             cell.columnconfigure(0, weight=1)
-            ttk.Checkbutton(cell, text=label, variable=self.feature_vars[feature_id]).grid(row=0, column=0, sticky="w")
+            checkbutton = ttk.Checkbutton(cell, text=label, variable=self.feature_vars[feature_id])
+            checkbutton.grid(row=0, column=0, sticky="w")
+            self.feature_checkbuttons[feature_id] = checkbutton
             ttk.Label(cell, text=description, wraplength=360, style="FeatureText.TLabel").grid(
                 row=1, column=0, sticky="w", padx=(24, 0)
             )
@@ -382,7 +384,11 @@ class CreateProjectApp(tk.Tk):
 
     def _on_template_changed(self, _event: tk.Event | None = None) -> None:
         self._update_template_help()
-        self._sync_surface_controls(reset_values=True)
+        self._sync_template_controls(reset_values=True)
+
+    def _sync_template_controls(self, reset_values: bool = False) -> None:
+        self._sync_surface_controls(reset_values=reset_values)
+        self._sync_feature_controls()
 
     def _sync_surface_controls(self, reset_values: bool = False) -> None:
         if self._selected_project_template() == "chrome-extension":
@@ -408,6 +414,19 @@ class CreateProjectApp(tk.Tk):
 
         self.surface_vars["web"].set(self.surface_vars["mobile"].get())
         self.surface_vars["backend"].set(self.surface_vars["mobile"].get())
+
+    def _sync_feature_controls(self) -> None:
+        if self._selected_project_template() == "chrome-extension":
+            for feature_id, checkbutton in self.feature_checkbuttons.items():
+                if feature_id == "design-starter":
+                    checkbutton.state(["!disabled"])
+                else:
+                    self.feature_vars[feature_id].set(False)
+                    checkbutton.state(["disabled"])
+            return
+
+        for checkbutton in self.feature_checkbuttons.values():
+            checkbutton.state(["!disabled"])
 
     def _selected_surfaces(self) -> list[str]:
         if self._selected_project_template() == "chrome-extension":

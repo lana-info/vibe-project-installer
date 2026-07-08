@@ -58,6 +58,7 @@ python .\scripts\create-vibe-project.py `
 ```
 
 Chrome extension is a separate project base. Do not combine it with `web`, `mobile`, `backend`, or `landing`.
+For Chrome extension projects, the GUI only allows workflow docs and the optional `Design starter` feature pack.
 
 Create a web/backend project from upstream:
 
