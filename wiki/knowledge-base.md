@@ -27,6 +27,7 @@ The installer should stay focused:
 
 - Frontend design: web starts from shadcn/ui-style components and then tunes them in the project's own design.
 - Mobile design: before feature work, create a small project-specific mobile component library instead of adding Tamagui by default.
+- Optional `design-starter` feature pack adds design workflow docs/prompts using shadcn/ui Blocks, Magic UI, Origin UI, and cautious mobile component guidance.
 - Chrome extension base: `JohnBra/vite-web-extension` is available through `--template chrome-extension`.
 - Generated projects include Russian docs: `START_HERE.ru.md`, `PRD.ru.md`, `TASKS.ru.md`, and `wiki/ru/`.
 - Deployment docs: generated projects include provider notes for Hetzner, Timeweb, and Hostinger under `wiki/deployment-providers/`.

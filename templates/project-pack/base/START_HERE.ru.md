@@ -7,10 +7,9 @@
 1. `PRD.ru.md` - цель продукта и MVP на русском.
 2. `TASKS.ru.md` - план задач на русском.
 3. `wiki/ru/how-to-work-with-ai.md` - как работать с Codex/AI.
-4. `wiki/ru/frontend-design.md` - направление дизайна web/mobile.
-5. `wiki/ru/project-starter-options.md` - какие основы проекта можно использовать.
-6. `wiki/ru/deployment-plan.md` - план хостинга.
-7. `prompts/` - готовые промпты.
+4. `wiki/ru/project-starter-options.md` - какие основы проекта можно использовать.
+5. `wiki/ru/deployment-plan.md` - план хостинга.
+6. `prompts/` - готовые промпты.
 
 ## Текущая Настройка
 
@@ -30,4 +29,3 @@
 7. Коммить только рабочее изменение.
 
 Не вставляй в чат секреты, токены, пароли, cookies и содержимое `.env`.
-

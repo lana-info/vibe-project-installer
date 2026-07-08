@@ -12,8 +12,7 @@ The goal is to keep project startup simple:
 - record the bootstrap plan in the generated project README;
 - create starter workflow files from `templates/project-pack`;
 - include English and Russian starter docs;
-- add frontend design guidance for shadcn-style web components and a small custom mobile component library;
-- add optional feature checklists and prompts for payments, uploads/media, social auth, push notifications, background jobs, cron, E2E tests, admin, realtime, marketplace/catalog, and AI features;
+- add optional feature checklists and prompts for payments, uploads/media, social auth, push notifications, background jobs, cron, E2E tests, admin, realtime, marketplace/catalog, AI features, and design starter;
 - record a documentation-only deployment plan: decide later, Hetzner, Timeweb, DigitalOcean, Hostinger, or custom hosting;
 - remove the template Git remote by default so new projects do not push back to upstream.
 

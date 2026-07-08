@@ -89,6 +89,11 @@ FEATURES = (
         "AI-функции",
         "Если в продукте будет генерация, анализ, ассистент, prompt-flow или AI-автоматизация.",
     ),
+    (
+        "design-starter",
+        "Design starter / основы дизайна",
+        "Если нужно сразу добавить дизайн workflow: shadcn/ui Blocks, Magic UI, Origin UI и осторожный mobile component starter.",
+    ),
 )
 DEPLOYMENT_PLANS = (
     ("decide-later", "Решить позже", "По умолчанию: не привязываем проект к хостингу на старте."),

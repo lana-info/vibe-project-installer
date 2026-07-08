@@ -39,6 +39,7 @@ FEATURES = {
     "realtime": "Realtime / chat",
     "marketplace-catalog": "Marketplace / catalog",
     "ai-features": "AI features",
+    "design-starter": "Design starter",
 }
 
 
