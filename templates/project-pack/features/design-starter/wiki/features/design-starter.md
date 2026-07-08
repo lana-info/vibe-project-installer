@@ -6,10 +6,16 @@ This does not install another full template by default. It gives the agent a des
 
 ## Recommended Sources
 
-- shadcn/ui Blocks: use for web apps, dashboards, forms, login screens, landing sections, and app layouts.
-- Magic UI: use selectively for landing page moments, tasteful animation, hero sections, social proof, and marketing polish.
-- Origin UI: use as copy-paste React/Tailwind component inspiration when shadcn/ui base components are too bare.
-- React Native Reusables: review carefully for mobile ideas, but do not add by default until it fits the app stack.
+- shadcn/ui Blocks: use for web apps, dashboards, forms, login screens, landing sections, and app layouts. Local archive: `D:\WorkOS\design-shadcn-ui-archive`.
+- Magic UI: use selectively for landing page moments, tasteful animation, hero sections, social proof, and marketing polish. Local archive: `D:\WorkOS\design-magic-ui-archive`.
+- Origin UI: use as copy-paste React/Tailwind component inspiration when shadcn/ui base components are too bare. Local archive: `D:\WorkOS\design-origin-ui-archive`.
+- React Native Reusables: review carefully for mobile ideas, but do not add by default until it fits the app stack. Local archive: `D:\WorkOS\design-react-native-reusables-archive`.
+
+Refresh archives from the installer repo:
+
+```powershell
+.\scripts\sync-upstream-archive.ps1
+```
 
 ## When To Use
 
@@ -35,4 +41,3 @@ This does not install another full template by default. It gives the agent a des
 - Build the real workflow screen first.
 - Tune spacing, hierarchy, states, and responsiveness.
 - Keep components simple enough for future Codex edits.
-

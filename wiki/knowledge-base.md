@@ -7,7 +7,8 @@ This repository is a small PowerShell wrapper for creating new projects from the
 The installer should stay focused:
 
 - clone or copy a vibe template;
-- choose active surfaces: `web`, `mobile`, `backend`, `landing`, or `full-stack`;
+- choose a project base: `Mobile app + Web` or `Chrome extension`;
+- for Vibe projects, `mobile` expands to `mobile,web,backend` because the upstream mobile branch contains the mobile app, browser web app/site, and backend/API;
 - keep cloud setup out of project creation by default;
 - write the bootstrap plan into the generated project `README.md`;
 - remove the upstream template remote by default.
@@ -39,8 +40,12 @@ Do not copy full upstream templates into this repo. Keep local backup checkouts 
 
 - `D:\WorkOS\vibe-upstream-archive` from `https://github.com/di-sukharev/vibe.git`
 - `D:\WorkOS\vite-web-extension-upstream-archive` from `https://github.com/JohnBra/vite-web-extension.git`
+- `D:\WorkOS\design-shadcn-ui-archive` from `https://github.com/shadcn-ui/ui.git`
+- `D:\WorkOS\design-magic-ui-archive` from `https://github.com/magicuidesign/magicui.git`
+- `D:\WorkOS\design-origin-ui-archive` from `https://github.com/shadcn/originui.git`
+- `D:\WorkOS\design-react-native-reusables-archive` from `https://github.com/founded-labs/react-native-reusables.git`
 
-Refresh both with:
+Refresh all archives with:
 
 ```powershell
 .\scripts\sync-upstream-archive.ps1

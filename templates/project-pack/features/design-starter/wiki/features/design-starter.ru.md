@@ -6,10 +6,16 @@
 
 ## Рекомендованные Источники
 
-- shadcn/ui Blocks: web apps, dashboards, forms, login screens, landing sections, app layouts.
-- Magic UI: аккуратно для landing-анимаций, hero sections, social proof и маркетинговой полировки.
-- Origin UI: copy-paste React/Tailwind компоненты, когда базовые shadcn/ui компоненты слишком голые.
-- React Native Reusables: смотреть осторожно для mobile-идей, но не добавлять по умолчанию без причины.
+- shadcn/ui Blocks: web apps, dashboards, forms, login screens, landing sections, app layouts. Локальный архив: `D:\WorkOS\design-shadcn-ui-archive`.
+- Magic UI: аккуратно для landing-анимаций, hero sections, social proof и маркетинговой полировки. Локальный архив: `D:\WorkOS\design-magic-ui-archive`.
+- Origin UI: copy-paste React/Tailwind компоненты, когда базовые shadcn/ui компоненты слишком голые. Локальный архив: `D:\WorkOS\design-origin-ui-archive`.
+- React Native Reusables: смотреть осторожно для mobile-идей, но не добавлять по умолчанию без причины. Локальный архив: `D:\WorkOS\design-react-native-reusables-archive`.
+
+Обновить архивы можно из installer-репозитория:
+
+```powershell
+.\scripts\sync-upstream-archive.ps1
+```
 
 ## Когда Включать
 
@@ -35,4 +41,3 @@
 - Сначала строить настоящий workflow screen.
 - Тюнить spacing, hierarchy, states и responsiveness.
 - Держать компоненты простыми для будущих правок Codex.
-

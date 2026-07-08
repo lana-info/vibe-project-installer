@@ -7,8 +7,8 @@ Use the Python CLI for day-to-day project creation. It calls the PowerShell inst
 The goal is to keep project startup simple:
 
 - create a fresh project folder;
-- choose a base template: `vibe` app or `chrome-extension`;
-- choose active surfaces: `web`, `mobile`, `backend`, `landing`, or `full-stack`;
+- choose a base template: `Mobile app + Web` or `Chrome extension`;
+- for Vibe projects, `Mobile app + Web` records `web,mobile,backend` because the upstream mobile branch includes the mobile app, browser web app/site, and backend/API;
 - record the bootstrap plan in the generated project README;
 - create starter workflow files from `templates/project-pack`;
 - include English and Russian starter docs;
@@ -36,14 +36,16 @@ python .\scripts\install-project-pack.py `
   --deployment-plan decide-later
 ```
 
-Create a mobile + web project with the Python CLI:
+Create a mobile app + web project with the Python CLI:
 
 ```powershell
 python .\scripts\create-vibe-project.py `
   --target-path "D:\WorkOS\My App" `
   --project-name "My App" `
-  --active-surfaces web,mobile,backend
+  --active-surfaces mobile
 ```
+
+The CLI expands `mobile` to `mobile,web,backend` for Vibe projects because the upstream mobile branch is the mobile app + web + backend template line.
 
 Create a Chrome extension project:
 
@@ -54,6 +56,8 @@ python .\scripts\create-vibe-project.py `
   --template chrome-extension `
   --active-surfaces chrome-extension
 ```
+
+Chrome extension is a separate project base. Do not combine it with `web`, `mobile`, `backend`, or `landing`.
 
 Create a web/backend project from upstream:
 
@@ -123,11 +127,23 @@ Default archive paths:
 
 - `D:\WorkOS\vibe-upstream-archive` for `di-sukharev/vibe`.
 - `D:\WorkOS\vite-web-extension-upstream-archive` for `JohnBra/vite-web-extension`.
+- `D:\WorkOS\design-shadcn-ui-archive` for `shadcn-ui/ui`.
+- `D:\WorkOS\design-magic-ui-archive` for `magicuidesign/magicui`.
+- `D:\WorkOS\design-origin-ui-archive` for `shadcn/originui`.
+- `D:\WorkOS\design-react-native-reusables-archive` for `founded-labs/react-native-reusables`.
+
+The archive sync script also creates local fallback branches such as `mobile` for `vibe`, so local archives can be used if an online source is unavailable.
 
 Update one archive only:
 
 ```powershell
 .\scripts\sync-upstream-archive.ps1 -Template chrome-extension
+```
+
+Update one design reference archive:
+
+```powershell
+.\scripts\sync-upstream-archive.ps1 -Template design-shadcn-ui
 ```
 
 ## Verification

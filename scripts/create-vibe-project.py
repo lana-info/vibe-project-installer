@@ -60,6 +60,23 @@ def parse_features(value: str) -> list[str]:
     return features
 
 
+def normalize_surfaces(template: str, surfaces: list[str]) -> list[str]:
+    if template == "chrome-extension":
+        if any(surface != "chrome-extension" for surface in surfaces):
+            raise argparse.ArgumentTypeError("Chrome extension projects cannot be mixed with web, mobile, backend, or landing surfaces.")
+        return ["chrome-extension"]
+
+    if "chrome-extension" in surfaces:
+        raise argparse.ArgumentTypeError("Use --template chrome-extension for Chrome extension projects.")
+
+    normalized = list(surfaces)
+    if "mobile" in normalized:
+        for required in ("web", "backend"):
+            if required not in normalized:
+                normalized.append(required)
+    return normalized
+
+
 def find_powershell() -> str:
     for candidate in ("pwsh", "powershell"):
         resolved = shutil.which(candidate)
@@ -260,6 +277,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.active_surfaces is None:
         args.active_surfaces = ["chrome-extension"] if args.template == "chrome-extension" else ["web", "mobile", "backend"]
+    try:
+        args.active_surfaces = normalize_surfaces(args.template, args.active_surfaces)
+    except argparse.ArgumentTypeError as exc:
+        parser.error(str(exc))
 
     script_path = Path(__file__).resolve().with_name("bootstrap-project.ps1")
     if not script_path.exists():

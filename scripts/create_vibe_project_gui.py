@@ -17,9 +17,8 @@ from tkinter import filedialog, messagebox, ttk
 ROOT = Path(__file__).resolve().parents[1]
 CLI_SCRIPT = ROOT / "scripts" / "create-vibe-project.py"
 DEFAULT_PARENT = Path("D:/WorkOS")
-SURFACES = ("web", "backend", "mobile", "landing", "chrome-extension")
 PROJECT_TEMPLATES = (
-    ("vibe", "Vibe mobile + web", "Обычное приложение: mobile + web + backend/API из di-sukharev/vibe."),
+    ("vibe", "Mobile app + Web", "Обычное приложение из di-sukharev/vibe: отдельное Expo/React Native mobile app + web app/site + backend/API."),
     ("chrome-extension", "Chrome extension", "Расширение Chrome/Firefox на React, TypeScript, Tailwind и Vite из JohnBra/vite-web-extension."),
 )
 COLORS = {
@@ -123,7 +122,7 @@ def find_python() -> str:
 class CreateProjectApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
-        self.title("Создать Vibe Project - Mobile + Web")
+        self.title("Создать Vibe Project")
         self.geometry("920x720")
         self.minsize(820, 620)
         self.configure(bg=COLORS["bg"])
@@ -140,6 +139,7 @@ class CreateProjectApp(tk.Tk):
             "landing": tk.BooleanVar(value=False),
             "chrome-extension": tk.BooleanVar(value=False),
         }
+        self.surface_checkbuttons: dict[str, ttk.Checkbutton] = {}
         self.feature_vars = {feature_id: tk.BooleanVar(value=False) for feature_id, _label, _description in FEATURES}
         self.output_queue: queue.Queue[tuple[str, str | int]] = queue.Queue()
         self.worker: threading.Thread | None = None
@@ -202,7 +202,7 @@ class CreateProjectApp(tk.Tk):
         ttk.Label(hero, text="Vibe Project Creator", style="HeroTitle.TLabel").grid(row=0, column=0, sticky="w")
         ttk.Label(
             hero,
-            text="Красивый старт нового mobile + web проекта: код из upstream, рабочие промпты и чек-листы из этого installer.",
+            text="Красивый старт нового проекта: код из upstream, рабочие промпты и чек-листы из этого installer.",
             style="HeroText.TLabel",
             wraplength=820,
         ).grid(row=1, column=0, sticky="w", pady=(6, 0))
@@ -274,39 +274,8 @@ class CreateProjectApp(tk.Tk):
         template_combo.bind("<<ComboboxSelected>>", self._on_template_changed)
         self._update_template_help()
 
-        surfaces = self._section(frame, "Тип проекта")
-        surfaces.grid(row=3, column=0, columnspan=3, sticky="ew", pady=(0, 10))
-        ttk.Label(
-            surfaces,
-            text="По умолчанию для Vibe: Mobile + Web. Для расширения выбери Chrome extension.",
-            wraplength=760,
-            style="Muted.TLabel",
-        ).grid(row=0, column=0, columnspan=4, sticky="w", pady=(0, 8))
-        for index, surface in enumerate(SURFACES):
-            label = "backend/API поддержка" if surface == "backend" else surface
-            ttk.Checkbutton(surfaces, text=label, variable=self.surface_vars[surface]).grid(
-                row=1 + (index // 4), column=index % 4, padx=(0, 22), sticky="w"
-            )
-
-        deployment = self._section(frame, "План хостинга")
-        deployment.grid(row=4, column=0, columnspan=3, sticky="ew", pady=(0, 10))
-        deployment.columnconfigure(1, weight=1)
-        ttk.Label(deployment, text="Где потом запускать", style="Field.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
-        deployment_combo = ttk.Combobox(
-            deployment,
-            textvariable=self.deployment_plan_label,
-            values=[label for _value, label, _description in DEPLOYMENT_PLANS],
-            state="readonly",
-            width=22,
-        )
-        deployment_combo.grid(row=0, column=1, sticky="w")
-        self.deployment_help = ttk.Label(deployment, text="", wraplength=760, style="Muted.TLabel")
-        self.deployment_help.grid(row=1, column=0, columnspan=2, sticky="w", pady=(6, 0))
-        deployment_combo.bind("<<ComboboxSelected>>", self._update_deployment_help)
-        self._update_deployment_help()
-
         docs = self._section(frame, "Документация для работы")
-        docs.grid(row=5, column=0, columnspan=3, sticky="ew")
+        docs.grid(row=3, column=0, columnspan=3, sticky="ew", pady=(0, 10))
         docs.columnconfigure(0, weight=1)
         ttk.Checkbutton(
             docs,
@@ -322,6 +291,43 @@ class CreateProjectApp(tk.Tk):
             wraplength=760,
             style="Muted.TLabel",
         ).grid(row=1, column=0, sticky="w", padx=(24, 0), pady=(4, 0))
+
+        surfaces = self._section(frame, "Тип проекта")
+        surfaces.grid(row=4, column=0, columnspan=3, sticky="ew", pady=(0, 10))
+        ttk.Label(
+            surfaces,
+            text="Mobile app - это отдельное приложение для телефона. Web - это сайт/веб-приложение, которое работает в браузере на телефоне и ПК.",
+            wraplength=760,
+            style="Muted.TLabel",
+        ).grid(row=0, column=0, columnspan=4, sticky="w", pady=(0, 8))
+        surface_options = (
+            ("mobile", "Mobile app + Web (приложение + сайт/веб-приложение + backend/API)"),
+            ("landing", "Landing / public website"),
+            ("chrome-extension", "Chrome extension"),
+        )
+        for index, (surface, label) in enumerate(surface_options):
+            checkbutton = ttk.Checkbutton(surfaces, text=label, variable=self.surface_vars[surface])
+            checkbutton.grid(row=1, column=index, padx=(0, 22), sticky="w")
+            self.surface_checkbuttons[surface] = checkbutton
+
+        deployment = self._section(frame, "План хостинга")
+        deployment.grid(row=5, column=0, columnspan=3, sticky="ew")
+        deployment.columnconfigure(1, weight=1)
+        ttk.Label(deployment, text="Где потом запускать", style="Field.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
+        deployment_combo = ttk.Combobox(
+            deployment,
+            textvariable=self.deployment_plan_label,
+            values=[label for _value, label, _description in DEPLOYMENT_PLANS],
+            state="readonly",
+            width=22,
+        )
+        deployment_combo.grid(row=0, column=1, sticky="w")
+        self.deployment_help = ttk.Label(deployment, text="", wraplength=760, style="Muted.TLabel")
+        self.deployment_help.grid(row=1, column=0, columnspan=2, sticky="w", pady=(6, 0))
+        deployment_combo.bind("<<ComboboxSelected>>", self._update_deployment_help)
+        self._update_deployment_help()
+
+        self._sync_surface_controls()
 
     def _build_features_tab(self, frame: ttk.Frame) -> None:
         frame.columnconfigure(0, weight=1)
@@ -376,13 +382,43 @@ class CreateProjectApp(tk.Tk):
 
     def _on_template_changed(self, _event: tk.Event | None = None) -> None:
         self._update_template_help()
+        self._sync_surface_controls(reset_values=True)
+
+    def _sync_surface_controls(self, reset_values: bool = False) -> None:
         if self._selected_project_template() == "chrome-extension":
-            for surface, value in self.surface_vars.items():
-                value.set(surface == "chrome-extension")
-        else:
-            defaults = {"web": True, "backend": True, "mobile": True, "landing": False, "chrome-extension": False}
-            for surface, value in self.surface_vars.items():
-                value.set(defaults[surface])
+            if reset_values:
+                self.surface_vars["mobile"].set(False)
+                self.surface_vars["landing"].set(False)
+                self.surface_vars["chrome-extension"].set(True)
+            for surface in ("mobile", "landing"):
+                self.surface_checkbuttons[surface].state(["disabled"])
+            self.surface_checkbuttons["chrome-extension"].state(["disabled"])
+            return
+
+        if reset_values:
+            self.surface_vars["mobile"].set(True)
+            self.surface_vars["landing"].set(False)
+            self.surface_vars["chrome-extension"].set(False)
+        for surface in ("mobile", "landing"):
+            self.surface_checkbuttons[surface].state(["!disabled"])
+        self.surface_checkbuttons["chrome-extension"].state(["disabled"])
+        self.surface_vars["chrome-extension"].set(False)
+        if not self.surface_vars["mobile"].get() and not self.surface_vars["landing"].get():
+            self.surface_vars["mobile"].set(True)
+
+        self.surface_vars["web"].set(self.surface_vars["mobile"].get())
+        self.surface_vars["backend"].set(self.surface_vars["mobile"].get())
+
+    def _selected_surfaces(self) -> list[str]:
+        if self._selected_project_template() == "chrome-extension":
+            return ["chrome-extension"]
+
+        surfaces: list[str] = []
+        if self.surface_vars["mobile"].get():
+            surfaces.extend(["web", "mobile", "backend"])
+        if self.surface_vars["landing"].get():
+            surfaces.append("landing")
+        return surfaces
 
     def _update_deployment_help(self, _event: tk.Event | None = None) -> None:
         selected = self.deployment_plan_label.get()
@@ -409,9 +445,6 @@ class CreateProjectApp(tk.Tk):
 
         name = self.project_name.get().strip() or "My Vibe App"
         self.target_path.set(str(Path(parent) / name))
-
-    def _selected_surfaces(self) -> list[str]:
-        return [surface for surface, value in self.surface_vars.items() if value.get()]
 
     def _selected_features(self) -> list[str]:
         return [feature for feature, value in self.feature_vars.items() if value.get()]

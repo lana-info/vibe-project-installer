@@ -24,6 +24,7 @@ $ErrorActionPreference = 'Stop'
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sourceRoot = Split-Path -Parent $scriptRoot
 $knownSurfaces = @('web', 'mobile', 'backend', 'landing', 'chrome-extension')
+$fullStackSurfaces = @('web', 'mobile', 'backend', 'landing')
 
 function Resolve-Surfaces {
     param([string[]]$Requested)
@@ -44,8 +45,12 @@ function Resolve-Surfaces {
 
         foreach ($surface in $normalized) {
             if ($surface -eq 'full-stack') {
-                return $knownSurfaces
+                return $fullStackSurfaces
             }
+        }
+
+        if (($normalized -contains 'chrome-extension') -and ($normalized.Count -gt 1)) {
+            throw 'chrome-extension cannot be combined with web, mobile, backend, landing, or full-stack. Create it as a separate project template.'
         }
 
         $invalid = $normalized | Where-Object { $knownSurfaces -notcontains $_ }
