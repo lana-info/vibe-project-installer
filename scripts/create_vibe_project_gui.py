@@ -17,7 +17,11 @@ from tkinter import filedialog, messagebox, ttk
 ROOT = Path(__file__).resolve().parents[1]
 CLI_SCRIPT = ROOT / "scripts" / "create-vibe-project.py"
 DEFAULT_PARENT = Path("D:/WorkOS")
-SURFACES = ("web", "backend", "mobile", "landing")
+SURFACES = ("web", "backend", "mobile", "landing", "chrome-extension")
+PROJECT_TEMPLATES = (
+    ("vibe", "Vibe mobile + web", "Обычное приложение: mobile + web + backend/API из di-sukharev/vibe."),
+    ("chrome-extension", "Chrome extension", "Расширение Chrome/Firefox на React, TypeScript, Tailwind и Vite из JohnBra/vite-web-extension."),
+)
 COLORS = {
     "bg": "#f6f7fb",
     "surface": "#ffffff",
@@ -121,6 +125,7 @@ class CreateProjectApp(tk.Tk):
 
         self.project_name = tk.StringVar(value="My Vibe App")
         self.target_path = tk.StringVar(value=str(DEFAULT_PARENT / "My Vibe App"))
+        self.project_template_label = tk.StringVar(value=PROJECT_TEMPLATES[0][1])
         self.include_workflow_docs = tk.BooleanVar(value=True)
         self.deployment_plan_label = tk.StringVar(value=DEPLOYMENT_PLANS[0][1])
         self.surface_vars = {
@@ -128,6 +133,7 @@ class CreateProjectApp(tk.Tk):
             "backend": tk.BooleanVar(value=True),
             "mobile": tk.BooleanVar(value=True),
             "landing": tk.BooleanVar(value=False),
+            "chrome-extension": tk.BooleanVar(value=False),
         }
         self.feature_vars = {feature_id: tk.BooleanVar(value=False) for feature_id, _label, _description in FEATURES}
         self.output_queue: queue.Queue[tuple[str, str | int]] = queue.Queue()
@@ -246,22 +252,39 @@ class CreateProjectApp(tk.Tk):
             row=1, column=2, padx=(8, 0), pady=6
         )
 
+        template = self._section(frame, "Основа проекта")
+        template.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(8, 10))
+        template.columnconfigure(1, weight=1)
+        ttk.Label(template, text="Что создаем", style="Field.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
+        template_combo = ttk.Combobox(
+            template,
+            textvariable=self.project_template_label,
+            values=[label for _value, label, _description in PROJECT_TEMPLATES],
+            state="readonly",
+            width=26,
+        )
+        template_combo.grid(row=0, column=1, sticky="w")
+        self.template_help = ttk.Label(template, text="", wraplength=760, style="Muted.TLabel")
+        self.template_help.grid(row=1, column=0, columnspan=2, sticky="w", pady=(6, 0))
+        template_combo.bind("<<ComboboxSelected>>", self._on_template_changed)
+        self._update_template_help()
+
         surfaces = self._section(frame, "Тип проекта")
-        surfaces.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(8, 10))
+        surfaces.grid(row=3, column=0, columnspan=3, sticky="ew", pady=(0, 10))
         ttk.Label(
             surfaces,
-            text="По умолчанию: Mobile + Web. Backend/API включён для логина, данных и логики приложения.",
+            text="По умолчанию для Vibe: Mobile + Web. Для расширения выбери Chrome extension.",
             wraplength=760,
             style="Muted.TLabel",
         ).grid(row=0, column=0, columnspan=4, sticky="w", pady=(0, 8))
         for index, surface in enumerate(SURFACES):
             label = "backend/API поддержка" if surface == "backend" else surface
             ttk.Checkbutton(surfaces, text=label, variable=self.surface_vars[surface]).grid(
-                row=1, column=index, padx=(0, 22), sticky="w"
+                row=1 + (index // 4), column=index % 4, padx=(0, 22), sticky="w"
             )
 
         deployment = self._section(frame, "План хостинга")
-        deployment.grid(row=3, column=0, columnspan=3, sticky="ew", pady=(0, 10))
+        deployment.grid(row=4, column=0, columnspan=3, sticky="ew", pady=(0, 10))
         deployment.columnconfigure(1, weight=1)
         ttk.Label(deployment, text="Где потом запускать", style="Field.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
         deployment_combo = ttk.Combobox(
@@ -278,7 +301,7 @@ class CreateProjectApp(tk.Tk):
         self._update_deployment_help()
 
         docs = self._section(frame, "Документация для работы")
-        docs.grid(row=4, column=0, columnspan=3, sticky="ew")
+        docs.grid(row=5, column=0, columnspan=3, sticky="ew")
         docs.columnconfigure(0, weight=1)
         ttk.Checkbutton(
             docs,
@@ -336,6 +359,25 @@ class CreateProjectApp(tk.Tk):
 
     def _section(self, parent: ttk.Frame, title: str) -> ttk.LabelFrame:
         return ttk.LabelFrame(parent, text=title, padding=12, style="Card.TLabelframe")
+
+    def _selected_project_template(self) -> str:
+        selected = self.project_template_label.get()
+        return next((value for value, label, _description in PROJECT_TEMPLATES if label == selected), "vibe")
+
+    def _update_template_help(self) -> None:
+        selected = self.project_template_label.get()
+        description = next((description for _value, label, description in PROJECT_TEMPLATES if label == selected), "")
+        self.template_help.config(text=description)
+
+    def _on_template_changed(self, _event: tk.Event | None = None) -> None:
+        self._update_template_help()
+        if self._selected_project_template() == "chrome-extension":
+            for surface, value in self.surface_vars.items():
+                value.set(surface == "chrome-extension")
+        else:
+            defaults = {"web": True, "backend": True, "mobile": True, "landing": False, "chrome-extension": False}
+            for surface, value in self.surface_vars.items():
+                value.set(defaults[surface])
 
     def _update_deployment_help(self, _event: tk.Event | None = None) -> None:
         selected = self.deployment_plan_label.get()
@@ -407,6 +449,8 @@ class CreateProjectApp(tk.Tk):
             self.target_path.get(),
             "--project-name",
             self.project_name.get().strip(),
+            "--template",
+            self._selected_project_template(),
             "--active-surfaces",
             ",".join(self._selected_surfaces()),
         ]

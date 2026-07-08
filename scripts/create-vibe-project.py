@@ -13,8 +13,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT_PACK_ROOT = ROOT / "templates" / "project-pack"
 DEFAULT_SOURCE_URL = "https://github.com/di-sukharev/vibe.git"
+CHROME_EXTENSION_SOURCE_URL = "https://github.com/JohnBra/vite-web-extension.git"
 DEFAULT_WEB_BRANCH = "master"
 DEFAULT_MOBILE_BRANCH = "mobile"
+DEFAULT_CHROME_EXTENSION_BRANCH = "main"
+PROJECT_TEMPLATES = ("vibe", "chrome-extension")
 HOSTING_MODES = ("custom", "none", "digitalocean")
 DEPLOYMENT_PLANS = {
     "decide-later": "Decide later",
@@ -67,7 +70,14 @@ def find_powershell() -> str:
 def build_command(args: argparse.Namespace, script_path: Path) -> list[str]:
     branch = args.branch
     if branch is None:
-        branch = DEFAULT_MOBILE_BRANCH if "mobile" in args.active_surfaces else DEFAULT_WEB_BRANCH
+        if args.template == "chrome-extension":
+            branch = DEFAULT_CHROME_EXTENSION_BRANCH
+        else:
+            branch = DEFAULT_MOBILE_BRANCH if "mobile" in args.active_surfaces else DEFAULT_WEB_BRANCH
+
+    source_url = args.source_url
+    if source_url is None:
+        source_url = CHROME_EXTENSION_SOURCE_URL if args.template == "chrome-extension" else DEFAULT_SOURCE_URL
 
     command = [
         find_powershell(),
@@ -86,8 +96,8 @@ def build_command(args: argparse.Namespace, script_path: Path) -> list[str]:
         args.hosting,
     ]
 
-    if args.source_url:
-        command.extend(["-SourceUrl", args.source_url])
+    if source_url:
+        command.extend(["-SourceUrl", source_url])
 
     if branch:
         command.extend(["-Branch", branch])
@@ -111,6 +121,7 @@ def render_template(text: str, args: argparse.Namespace) -> str:
         "{{ACTIVE_SURFACES}}": ", ".join(args.active_surfaces),
         "{{FEATURE_LIST}}": ", ".join(feature_names) if feature_names else "No extra feature packs selected yet.",
         "{{DEPLOYMENT_PLAN}}": DEPLOYMENT_PLANS[args.deployment_plan],
+        "{{PROJECT_TEMPLATE}}": args.template,
     }
 
     for token, value in replacements.items():
@@ -192,13 +203,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--active-surfaces",
         type=parse_surfaces,
-        default=["web", "mobile", "backend"],
+        default=None,
         help="Comma-separated surfaces: web,mobile,backend,landing,full-stack.",
     )
     parser.add_argument(
+        "--template",
+        choices=PROJECT_TEMPLATES,
+        default="vibe",
+        help="Base project template: vibe or chrome-extension.",
+    )
+    parser.add_argument(
         "--source-url",
-        default=DEFAULT_SOURCE_URL,
-        help="Template Git URL. Use an empty string only for a local template checkout.",
+        default=None,
+        help="Override template Git URL. Use an empty string only for a local template checkout.",
     )
     parser.add_argument(
         "--branch",
@@ -240,6 +257,9 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     args = parser.parse_args(argv)
+    if args.active_surfaces is None:
+        args.active_surfaces = ["chrome-extension"] if args.template == "chrome-extension" else ["web", "mobile", "backend"]
+
     script_path = Path(__file__).resolve().with_name("bootstrap-project.ps1")
     if not script_path.exists():
         parser.error(f"Missing installer script: {script_path}")

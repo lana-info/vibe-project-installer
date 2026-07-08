@@ -53,6 +53,7 @@ def render_template(text: str, args: argparse.Namespace) -> str:
         "{{ACTIVE_SURFACES}}": ", ".join(args.active_surfaces),
         "{{FEATURE_LIST}}": ", ".join(feature_names) if feature_names else "No extra feature packs selected yet.",
         "{{DEPLOYMENT_PLAN}}": DEPLOYMENT_PLANS[args.deployment_plan],
+        "{{PROJECT_TEMPLATE}}": "existing-project",
     }
     for token, value in replacements.items():
         text = text.replace(token, value)

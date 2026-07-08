@@ -7,9 +7,11 @@ Use the Python CLI for day-to-day project creation. It calls the PowerShell inst
 The goal is to keep project startup simple:
 
 - create a fresh project folder;
+- choose a base template: `vibe` app or `chrome-extension`;
 - choose active surfaces: `web`, `mobile`, `backend`, `landing`, or `full-stack`;
 - record the bootstrap plan in the generated project README;
 - create starter workflow files from `templates/project-pack`;
+- include English and Russian starter docs;
 - add frontend design guidance for shadcn-style web components and a small custom mobile component library;
 - add optional feature checklists and prompts for payments, uploads/media, social auth, push notifications, background jobs, cron, E2E tests, admin, realtime, marketplace/catalog, and AI features;
 - record a documentation-only deployment plan: decide later, Hetzner, Timeweb, DigitalOcean, Hostinger, or custom hosting;
@@ -42,6 +44,16 @@ python .\scripts\create-vibe-project.py `
   --target-path "D:\WorkOS\My App" `
   --project-name "My App" `
   --active-surfaces web,mobile,backend
+```
+
+Create a Chrome extension project:
+
+```powershell
+python .\scripts\create-vibe-project.py `
+  --target-path "D:\WorkOS\My Extension" `
+  --project-name "My Extension" `
+  --template chrome-extension `
+  --active-surfaces chrome-extension
 ```
 
 Create a web/backend project from upstream:
@@ -86,6 +98,8 @@ Generated projects include provider notes for Hetzner, Timeweb, and Hostinger un
 ## Project Pack
 
 The app code comes from `di-sukharev/vibe`. The working instructions, checklists, and prompts come from this installer repo:
+
+Chrome extension projects use `JohnBra/vite-web-extension` as the app template.
 
 - `templates/project-pack/base` - copied into every new project.
 - `templates/project-pack/features` - copied only for selected feature checkboxes.

@@ -8,12 +8,16 @@ Open these files first:
 2. `TASKS.md` - ordered work plan.
 3. `wiki/how-to-work-with-ai.md` - how to work with Codex/AI agents.
 4. `wiki/frontend-design.md` - web and mobile UI direction.
-5. `wiki/deployment-plan.md` - hosting/deployment choice for later launch.
-6. `prompts/` - copy-ready prompts.
+5. `wiki/project-starter-options.md` - useful bases for vibe-coding projects.
+6. `wiki/deployment-plan.md` - hosting/deployment choice for later launch.
+7. `prompts/` - copy-ready prompts.
+
+Russian versions are available as `START_HERE.ru.md`, `PRD.ru.md`, `TASKS.ru.md`, and `wiki/ru/`.
 
 ## Current Setup
 
 - Active surfaces: {{ACTIVE_SURFACES}}
+- Project template: {{PROJECT_TEMPLATE}}
 - Selected feature packs: {{FEATURE_LIST}}
 - Deployment plan: {{DEPLOYMENT_PLAN}}
 

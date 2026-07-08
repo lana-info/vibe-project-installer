@@ -23,7 +23,7 @@ $ErrorActionPreference = 'Stop'
 
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sourceRoot = Split-Path -Parent $scriptRoot
-$knownSurfaces = @('web', 'mobile', 'backend', 'landing')
+$knownSurfaces = @('web', 'mobile', 'backend', 'landing', 'chrome-extension')
 
 function Resolve-Surfaces {
     param([string[]]$Requested)
@@ -538,7 +538,7 @@ if (-not $SkipWorkflowDocs) {
         -HostingMode $Hosting
 }
 
-Write-Output "Installed vibe template into $resolvedTarget"
+Write-Output "Installed template into $resolvedTarget"
 Write-Output "Project name: $resolvedProjectName"
 Write-Output "Active surfaces: $($resolvedActive -join ', ')"
 Write-Output "Cloud setup: $Hosting"
