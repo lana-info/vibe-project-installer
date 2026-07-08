@@ -19,6 +19,16 @@ The goal is to keep project startup simple:
 
 To open the GUI app on Windows, macOS, or Linux, see `RUN_APP.md`.
 
+Install vibe-coding workflow docs into an existing project:
+
+```powershell
+python .\scripts\install-project-pack.py `
+  --target-path "D:\WorkOS\Existing App" `
+  --project-name "Existing App" `
+  --active-surfaces web,mobile,backend `
+  --deployment-plan decide-later
+```
+
 Create a mobile + web project with the Python CLI:
 
 ```powershell
