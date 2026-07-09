@@ -115,10 +115,7 @@ def detect_project_files(target_root: Path) -> list[str]:
 
 
 def write_setup_audit(target_root: Path, args: argparse.Namespace) -> list[str]:
-    audit_path = target_root / "SETUP_AUDIT.md"
-    if audit_path.exists():
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        audit_path = target_root / f"SETUP_AUDIT-{timestamp}.md"
+    audit_path = unique_setup_audit_path(target_root)
 
     detected = detect_project_files(target_root)
     feature_names = [FEATURES[feature] for feature in args.features]
@@ -168,6 +165,20 @@ def write_setup_audit(target_root: Path, args: argparse.Namespace) -> list[str]:
     return [audit_path.name]
 
 
+def unique_setup_audit_path(target_root: Path) -> Path:
+    audit_path = target_root / "SETUP_AUDIT.md"
+    if not audit_path.exists():
+        return audit_path
+
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    for index in range(1, 1000):
+        candidate = target_root / f"SETUP_AUDIT-{timestamp}-{index}.md"
+        if not candidate.exists():
+            return candidate
+
+    raise RuntimeError("Could not choose a unique SETUP_AUDIT filename.")
+
+
 def copy_template_tree(source_root: Path, target_root: Path, args: argparse.Namespace) -> list[str]:
     created: list[str] = []
     if not source_root.exists():
@@ -182,35 +193,29 @@ def copy_template_tree(source_root: Path, target_root: Path, args: argparse.Name
     return created
 
 
-def append_readme_sections(target_root: Path, args: argparse.Namespace) -> list[str]:
-    readme = target_root / "README.md"
-    if not readme.exists():
-        readme.write_text(f"# {args.project_name}\n", encoding="utf-8", newline="\n")
+def write_vibe_setup_file(target_root: Path, args: argparse.Namespace) -> list[str]:
+    setup_file = target_root / "VIBE_SETUP.md"
+    if setup_file.exists():
+        return []
 
-    content = readme.read_text(encoding="utf-8", errors="replace")
     created: list[str] = []
+    lines = [
+        "# Vibe Coding Setup",
+        "",
+        f"- Project name: {args.project_name}",
+        f"- Project type: {args.project_type}",
+        f"- Active surfaces: {', '.join(args.active_surfaces)}",
+        f"- Deployment plan: {DEPLOYMENT_PLANS[args.deployment_plan]}",
+        "- Start with `START_HERE.md`, `PRD.md`, `TASKS.md`, and `wiki/how-to-work-with-ai.md`.",
+    ]
 
-    if "## Vibe Coding Setup" not in content:
-        lines = [
-            "",
-            "## Vibe Coding Setup",
-            "",
-            f"- Active surfaces: {', '.join(args.active_surfaces)}",
-            f"- Deployment plan: {DEPLOYMENT_PLANS[args.deployment_plan]}",
-            "- Start with `START_HERE.md`, `PRD.md`, `TASKS.md`, and `wiki/how-to-work-with-ai.md`.",
-        ]
-        content = content.rstrip() + "\n" + "\n".join(lines) + "\n"
-        created.append("README.md#Vibe Coding Setup")
-
-    if args.features and "## Selected Feature Packs" not in content:
-        lines = ["", "## Selected Feature Packs", ""]
+    if args.features:
+        lines.extend(["", "## Selected Feature Packs", ""])
         for feature in args.features:
             lines.append(f"- {FEATURES[feature]}: see `wiki/features/{feature}.md` and `prompts/features/{feature}.md`.")
-        lines.append("")
-        content = content.rstrip() + "\n" + "\n".join(lines)
-        created.append("README.md#Selected Feature Packs")
 
-    readme.write_text(content.rstrip() + "\n", encoding="utf-8", newline="\n")
+    setup_file.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8", newline="\n")
+    created.append("VIBE_SETUP.md")
     return created
 
 
@@ -226,7 +231,7 @@ def install_project_pack(args: argparse.Namespace) -> list[str]:
     created.extend(copy_template_tree(PROJECT_PACK_ROOT / "base", target_root, args))
     for feature in args.features:
         created.extend(copy_template_tree(PROJECT_PACK_ROOT / "features" / feature, target_root, args))
-    created.extend(append_readme_sections(target_root, args))
+    created.extend(write_vibe_setup_file(target_root, args))
     return created
 
 

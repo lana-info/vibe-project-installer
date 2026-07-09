@@ -101,7 +101,7 @@ On macOS/Linux:
 python3 scripts/install_project_pack_gui.py --target-path "/path/to/existing-app"
 ```
 
-This mode creates `SETUP_AUDIT.md`, adds only missing docs/prompts, and does not install dependencies automatically.
+This mode creates `SETUP_AUDIT.md`, writes setup notes to `VIBE_SETUP.md`, adds only missing docs/prompts, does not rewrite the existing README, and does not install dependencies automatically.
 
 ## Notes
 

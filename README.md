@@ -30,7 +30,9 @@ The existing-project setup is safe by default:
 
 - it requires an existing project folder;
 - it creates `SETUP_AUDIT.md`;
+- it writes setup notes to `VIBE_SETUP.md`;
 - it does not overwrite existing docs/prompts;
+- it does not rewrite the existing project `README.md`;
 - it does not install dependencies or frameworks automatically.
 
 Or run it without the GUI:
