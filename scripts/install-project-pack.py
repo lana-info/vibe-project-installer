@@ -7,7 +7,7 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 
-from project_options import PROJECT_TYPE_SURFACES, SIMPLE_PROJECT_FEATURES
+from project_options import HOSTING_PROJECT_TYPES, PROJECT_TYPE_SURFACES, allowed_features_for_project_type
 
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT_PACK_ROOT = ROOT / "templates" / "project-pack"
@@ -51,13 +51,11 @@ def parse_features(value: str) -> list[str]:
 
 
 def normalize_features(project_type: str, features: list[str]) -> list[str]:
-    if project_type == "mobile-web-app":
-        return features
-
-    invalid = [feature for feature in features if feature not in SIMPLE_PROJECT_FEATURES]
+    allowed = allowed_features_for_project_type(project_type, tuple(FEATURES))
+    invalid = [feature for feature in features if feature not in allowed]
     if invalid:
         raise argparse.ArgumentTypeError(
-            f"{project_type} projects only support docs and design-starter. Unsupported feature(s): {', '.join(invalid)}."
+            f"{project_type} projects do not support feature(s): {', '.join(invalid)}."
         )
     return features
 
@@ -269,6 +267,8 @@ def main(argv: list[str] | None = None) -> int:
         args.project_name = target_root.name
     if args.active_surfaces is None:
         args.active_surfaces = PROJECT_TYPE_SURFACES[args.project_type]
+    if args.project_type not in HOSTING_PROJECT_TYPES:
+        args.deployment_plan = "decide-later"
     try:
         args.features = normalize_features(args.project_type, args.features)
     except argparse.ArgumentTypeError as exc:

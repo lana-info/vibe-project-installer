@@ -13,12 +13,20 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-from project_options import LIMITED_FEATURE_PROJECT_TYPES, surfaces_for_project_type
+from project_options import (
+    DEFAULT_DESKTOP_UI_STACK,
+    DESKTOP_UI_STACKS,
+    HOSTING_PROJECT_TYPES,
+    allowed_features_for_project_type,
+    desktop_ui_label,
+    desktop_ui_option,
+    surfaces_for_project_type,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
 CLI_SCRIPT = ROOT / "scripts" / "create-vibe-project.py"
-INSTALL_GUI_SCRIPT = ROOT / "scripts" / "install_project_pack_gui.py"
+INSTALL_SCRIPT = ROOT / "scripts" / "install-project-pack.py"
 DEFAULT_PARENT = Path("D:/WorkOS")
 PROJECT_TYPES = (
     ("website", "Website", "Обычный сайт, который работает в браузере на телефоне и компьютере."),
@@ -133,10 +141,13 @@ class CreateProjectApp(tk.Tk):
         self.minsize(820, 620)
         self.configure(bg=COLORS["bg"])
 
+        self.project_mode = tk.StringVar(value="new")
         self.project_name = tk.StringVar(value="My Vibe App")
         self.target_path = tk.StringVar(value=str(DEFAULT_PARENT / "My Vibe App"))
         self.project_type_label = tk.StringVar(value=PROJECT_TYPES[0][1])
+        self.desktop_ui_label = tk.StringVar(value=desktop_ui_label(DEFAULT_DESKTOP_UI_STACK))
         self.include_workflow_docs = tk.BooleanVar(value=True)
+        self.install_dependencies = tk.BooleanVar(value=False)
         self.deployment_plan_label = tk.StringVar(value=DEPLOYMENT_PLANS[0][1])
         self.feature_vars = {feature_id: tk.BooleanVar(value=False) for feature_id, _label, _description in FEATURES}
         self.feature_checkbuttons: dict[str, ttk.Checkbutton] = {}
@@ -209,32 +220,26 @@ class CreateProjectApp(tk.Tk):
         notebook = ttk.Notebook(root)
         notebook.grid(row=1, column=0, sticky="nsew")
 
-        main_tab = ttk.Frame(notebook, padding=16, style="Panel.TFrame")
+        main_tab_outer = ttk.Frame(notebook, style="Panel.TFrame")
         features_tab = ttk.Frame(notebook, padding=16, style="Panel.TFrame")
-        notebook.add(main_tab, text="Проект")
+        notebook.add(main_tab_outer, text="Проект")
         notebook.add(features_tab, text="Доп. функции")
 
+        main_tab = self._build_scrollable_tab(main_tab_outer)
         self._build_main_tab(main_tab)
         self._build_features_tab(features_tab)
-        self._sync_template_controls()
 
         bottom = ttk.Frame(root, style="App.TFrame")
         bottom.grid(row=2, column=0, sticky="ew", pady=(14, 0))
-        bottom.columnconfigure(2, weight=1)
+        bottom.columnconfigure(1, weight=1)
 
         self.create_button = ttk.Button(bottom, text="Создать проект", command=self._start_create, style="Accent.TButton")
         self.create_button.grid(row=0, column=0, sticky="w")
 
-        self.setup_existing_button = ttk.Button(
-            bottom,
-            text="Настроить существующий проект",
-            command=self._open_existing_project_setup,
-            style="Secondary.TButton",
-        )
-        self.setup_existing_button.grid(row=0, column=1, sticky="w", padx=(12, 0))
-
         self.status = ttk.Label(bottom, text="Готово")
-        self.status.grid(row=0, column=2, sticky="w", padx=(12, 0))
+        self.status.grid(row=0, column=1, sticky="w", padx=(12, 0))
+
+        self._sync_template_controls()
 
         self.log = tk.Text(root, height=8, wrap="word")
         self.log.configure(
@@ -250,23 +255,66 @@ class CreateProjectApp(tk.Tk):
         )
         self.log.grid(row=3, column=0, sticky="nsew", pady=(10, 0))
 
+    def _build_scrollable_tab(self, parent: ttk.Frame) -> ttk.Frame:
+        parent.columnconfigure(0, weight=1)
+        parent.rowconfigure(0, weight=1)
+
+        canvas = tk.Canvas(parent, bg=COLORS["surface"], highlightthickness=0)
+        scrollbar = ttk.Scrollbar(parent, orient="vertical", command=canvas.yview)
+        canvas.grid(row=0, column=0, sticky="nsew")
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        container = ttk.Frame(canvas, padding=16, style="Panel.TFrame")
+        window_id = canvas.create_window((0, 0), window=container, anchor="nw")
+
+        def sync_scroll_region(_event: tk.Event) -> None:
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        def sync_width(event: tk.Event) -> None:
+            canvas.itemconfigure(window_id, width=event.width)
+
+        container.bind("<Configure>", sync_scroll_region)
+        canvas.bind("<Configure>", sync_width)
+        return container
+
     def _build_main_tab(self, frame: ttk.Frame) -> None:
         frame.columnconfigure(1, weight=1)
         frame.rowconfigure(3, weight=1)
 
-        ttk.Label(frame, text="Название проекта", style="Field.TLabel").grid(row=0, column=0, sticky="w", pady=6)
+        mode = self._section(frame, "Режим")
+        mode.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(0, 10))
+        ttk.Radiobutton(
+            mode,
+            text="Новый проект",
+            value="new",
+            variable=self.project_mode,
+            command=self._on_mode_changed,
+        ).grid(row=0, column=0, sticky="w", padx=(0, 20))
+        ttk.Radiobutton(
+            mode,
+            text="Существующий проект",
+            value="existing",
+            variable=self.project_mode,
+            command=self._on_mode_changed,
+        ).grid(row=0, column=1, sticky="w")
+        self.mode_help = ttk.Label(mode, text="", wraplength=760, style="Muted.TLabel")
+        self.mode_help.grid(row=1, column=0, columnspan=2, sticky="w", pady=(6, 0))
+
+        ttk.Label(frame, text="Название проекта", style="Field.TLabel").grid(row=1, column=0, sticky="w", pady=6)
         name_entry = ttk.Entry(frame, textvariable=self.project_name)
-        name_entry.grid(row=0, column=1, columnspan=2, sticky="ew", pady=6)
+        name_entry.grid(row=1, column=1, columnspan=2, sticky="ew", pady=6)
         name_entry.bind("<KeyRelease>", self._sync_target_name)
 
-        ttk.Label(frame, text="Папка проекта", style="Field.TLabel").grid(row=1, column=0, sticky="w", pady=6)
-        ttk.Entry(frame, textvariable=self.target_path).grid(row=1, column=1, sticky="ew", pady=6)
-        ttk.Button(frame, text="Выбрать", command=self._browse_target, style="Secondary.TButton").grid(
-            row=1, column=2, padx=(8, 0), pady=6
+        ttk.Label(frame, text="Папка проекта", style="Field.TLabel").grid(row=2, column=0, sticky="w", pady=6)
+        ttk.Entry(frame, textvariable=self.target_path).grid(row=2, column=1, sticky="ew", pady=6)
+        self.browse_button = ttk.Button(frame, text="Выбрать", command=self._browse_target, style="Secondary.TButton")
+        self.browse_button.grid(
+            row=2, column=2, padx=(8, 0), pady=6
         )
 
         template = self._section(frame, "Тип проекта")
-        template.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(8, 10))
+        template.grid(row=3, column=0, columnspan=3, sticky="ew", pady=(8, 10))
         template.columnconfigure(1, weight=1)
         ttk.Label(template, text="Что создаем", style="Field.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
         template_combo = ttk.Combobox(
@@ -282,8 +330,41 @@ class CreateProjectApp(tk.Tk):
         template_combo.bind("<<ComboboxSelected>>", self._on_template_changed)
         self._update_template_help()
 
+        self.desktop_ui_section = self._section(frame, "Дизайн desktop-приложения")
+        self.desktop_ui_section.grid(row=4, column=0, columnspan=3, sticky="ew", pady=(0, 10))
+        self.desktop_ui_section.columnconfigure(1, weight=1)
+        ttk.Label(self.desktop_ui_section, text="Какой интерфейс нужен", style="Field.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
+        self.desktop_ui_combo = ttk.Combobox(
+            self.desktop_ui_section,
+            textvariable=self.desktop_ui_label,
+            values=[option["label"] for option in DESKTOP_UI_STACKS.values()],
+            state="readonly",
+            width=38,
+        )
+        self.desktop_ui_combo.grid(row=0, column=1, sticky="w")
+        self.desktop_ui_help = ttk.Label(self.desktop_ui_section, text="", wraplength=760, style="Muted.TLabel")
+        self.desktop_ui_help.grid(row=1, column=0, columnspan=2, sticky="w", pady=(6, 0))
+        self.desktop_ui_combo.bind("<<ComboboxSelected>>", self._update_desktop_ui_help)
+        self._update_desktop_ui_help()
+
+        self.dependency_section = self._section(frame, "Пакеты интерфейса")
+        self.dependency_section.grid(row=5, column=0, columnspan=3, sticky="ew", pady=(0, 10))
+        self.dependency_section.columnconfigure(0, weight=1)
+        ttk.Checkbutton(
+            self.dependency_section,
+            text="Скачать пакеты для выбранного интерфейса после создания проекта",
+            variable=self.install_dependencies,
+        ).grid(row=0, column=0, sticky="w")
+        self.dependency_help = ttk.Label(
+            self.dependency_section,
+            text="По умолчанию выключено: проект получит только список пакетов и команды в README. Если включить, в логе будет видно скачивание.",
+            wraplength=760,
+            style="Muted.TLabel",
+        )
+        self.dependency_help.grid(row=1, column=0, sticky="w", padx=(24, 0), pady=(4, 0))
+
         docs = self._section(frame, "Документация для работы")
-        docs.grid(row=3, column=0, columnspan=3, sticky="ew", pady=(0, 10))
+        docs.grid(row=6, column=0, columnspan=3, sticky="ew", pady=(0, 10))
         docs.columnconfigure(0, weight=1)
         ttk.Checkbutton(
             docs,
@@ -300,21 +381,21 @@ class CreateProjectApp(tk.Tk):
             style="Muted.TLabel",
         ).grid(row=1, column=0, sticky="w", padx=(24, 0), pady=(4, 0))
 
-        deployment = self._section(frame, "План хостинга")
-        deployment.grid(row=4, column=0, columnspan=3, sticky="ew")
-        deployment.columnconfigure(1, weight=1)
-        ttk.Label(deployment, text="Где потом запускать", style="Field.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
-        deployment_combo = ttk.Combobox(
-            deployment,
+        self.deployment_section = self._section(frame, "План хостинга")
+        self.deployment_section.grid(row=7, column=0, columnspan=3, sticky="ew")
+        self.deployment_section.columnconfigure(1, weight=1)
+        ttk.Label(self.deployment_section, text="Где потом запускать", style="Field.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
+        self.deployment_combo = ttk.Combobox(
+            self.deployment_section,
             textvariable=self.deployment_plan_label,
             values=[label for _value, label, _description in DEPLOYMENT_PLANS],
             state="readonly",
             width=22,
         )
-        deployment_combo.grid(row=0, column=1, sticky="w")
-        self.deployment_help = ttk.Label(deployment, text="", wraplength=760, style="Muted.TLabel")
+        self.deployment_combo.grid(row=0, column=1, sticky="w")
+        self.deployment_help = ttk.Label(self.deployment_section, text="", wraplength=760, style="Muted.TLabel")
         self.deployment_help.grid(row=1, column=0, columnspan=2, sticky="w", pady=(6, 0))
-        deployment_combo.bind("<<ComboboxSelected>>", self._update_deployment_help)
+        self.deployment_combo.bind("<<ComboboxSelected>>", self._update_deployment_help)
         self._update_deployment_help()
 
     def _build_features_tab(self, frame: ttk.Frame) -> None:
@@ -382,24 +463,72 @@ class CreateProjectApp(tk.Tk):
         self._update_template_help()
         self._sync_template_controls(reset_values=True)
 
+    def _is_existing_mode(self) -> bool:
+        return self.project_mode.get() == "existing"
+
+    def _on_mode_changed(self) -> None:
+        self._sync_template_controls()
+
     def _sync_template_controls(self, reset_values: bool = False) -> None:
+        self._sync_mode_controls()
         self._sync_feature_controls()
+        self._sync_desktop_ui_controls()
+        self._sync_deployment_controls()
+        self._sync_dependency_controls()
+
+    def _sync_mode_controls(self) -> None:
+        if self._is_existing_mode():
+            self.create_button.config(text="Настроить существующий проект")
+            self.mode_help.config(
+                text="Безопасно добавляет SETUP_AUDIT, VIBE_SETUP, docs/prompts и выбранные feature packs в уже существующую папку. Код проекта не перезаписывается."
+            )
+        else:
+            self.create_button.config(text="Создать проект")
+            self.mode_help.config(
+                text="Создаёт новую папку проекта из выбранной основы. Папка не должна существовать заранее."
+            )
 
     def _sync_feature_controls(self) -> None:
-        if self._selected_project_type() in LIMITED_FEATURE_PROJECT_TYPES:
-            for feature_id, checkbutton in self.feature_checkbuttons.items():
-                if feature_id == "design-starter":
-                    checkbutton.state(["!disabled"])
-                else:
-                    self.feature_vars[feature_id].set(False)
-                    checkbutton.state(["disabled"])
-            return
-
-        for checkbutton in self.feature_checkbuttons.values():
-            checkbutton.state(["!disabled"])
+        allowed = allowed_features_for_project_type(self._selected_project_type(), tuple(self.feature_vars))
+        for feature_id, checkbutton in self.feature_checkbuttons.items():
+            if feature_id in allowed:
+                checkbutton.state(["!disabled"])
+            else:
+                self.feature_vars[feature_id].set(False)
+                checkbutton.state(["disabled"])
 
     def _selected_surfaces(self) -> list[str]:
         return surfaces_for_project_type(self._selected_project_type())
+
+    def _selected_desktop_ui(self) -> str:
+        selected = self.desktop_ui_label.get()
+        return next((value for value, option in DESKTOP_UI_STACKS.items() if option["label"] == selected), DEFAULT_DESKTOP_UI_STACK)
+
+    def _update_desktop_ui_help(self, _event: tk.Event | None = None) -> None:
+        stack = self._selected_desktop_ui()
+        self.desktop_ui_help.config(text=desktop_ui_option(stack)["gui_help"])
+        if hasattr(self, "dependency_help"):
+            self._sync_dependency_controls()
+
+    def _sync_desktop_ui_controls(self) -> None:
+        if not self._is_existing_mode() and self._selected_project_type() == "desktop-python":
+            self.desktop_ui_section.grid()
+        else:
+            self.desktop_ui_section.grid_remove()
+
+    def _sync_deployment_controls(self) -> None:
+        if self._selected_project_type() in HOSTING_PROJECT_TYPES:
+            self.deployment_section.grid()
+        else:
+            self.deployment_plan_label.set(DEPLOYMENT_PLANS[0][1])
+            self.deployment_section.grid_remove()
+
+    def _sync_dependency_controls(self) -> None:
+        if not self._is_existing_mode() and self._selected_project_type() == "desktop-python":
+            self.dependency_section.grid()
+            self.dependency_help.config(text=desktop_ui_option(self._selected_desktop_ui())["install_help"])
+        else:
+            self.dependency_section.grid_remove()
 
     def _update_deployment_help(self, _event: tk.Event | None = None) -> None:
         selected = self.deployment_plan_label.get()
@@ -407,16 +536,32 @@ class CreateProjectApp(tk.Tk):
         self.deployment_help.config(text=description)
 
     def _selected_deployment_plan(self) -> str:
+        if self._selected_project_type() not in HOSTING_PROJECT_TYPES:
+            return "decide-later"
         selected = self.deployment_plan_label.get()
         return next((value for value, label, _description in DEPLOYMENT_PLANS if label == selected), "decide-later")
 
     def _sync_target_name(self, _event: tk.Event) -> None:
+        if self._is_existing_mode():
+            return
         current = Path(self.target_path.get())
         if current.parent == DEFAULT_PARENT or not self.target_path.get().strip():
             name = self.project_name.get().strip() or "My Vibe App"
             self.target_path.set(str(DEFAULT_PARENT / name))
 
     def _browse_target(self) -> None:
+        if self._is_existing_mode():
+            selected = filedialog.askdirectory(
+                title="Выбери папку существующего проекта",
+                initialdir=str(Path(self.target_path.get()).parent if self.target_path.get().strip() else DEFAULT_PARENT),
+            )
+            if not selected:
+                return
+            path = Path(selected)
+            self.target_path.set(str(path))
+            self.project_name.set(path.name)
+            return
+
         parent = filedialog.askdirectory(
             title="Выбери папку, внутри которой создать новый проект",
             initialdir=str(DEFAULT_PARENT if DEFAULT_PARENT.exists() else ROOT),
@@ -440,12 +585,21 @@ class CreateProjectApp(tk.Tk):
         if not self._selected_surfaces():
             messagebox.showerror("Не выбран тип проекта", "Выбери хотя бы одну активную часть проекта.")
             return False
-        if Path(self.target_path.get()).exists():
-            messagebox.showerror("Папка уже существует", "Такая папка уже существует. Выбери новое имя или другую папку.")
-            return False
-        if not CLI_SCRIPT.exists():
-            messagebox.showerror("Не найден скрипт", f"Не могу найти {CLI_SCRIPT}")
-            return False
+        target = Path(self.target_path.get())
+        if self._is_existing_mode():
+            if not target.exists() or not target.is_dir():
+                messagebox.showerror("Папка не найдена", "Для режима существующего проекта выбери уже существующую папку.")
+                return False
+            if not INSTALL_SCRIPT.exists():
+                messagebox.showerror("Не найден скрипт", f"Не могу найти {INSTALL_SCRIPT}")
+                return False
+        else:
+            if target.exists():
+                messagebox.showerror("Папка уже существует", "Такая папка уже существует. Выбери новое имя или другую папку.")
+                return False
+            if not CLI_SCRIPT.exists():
+                messagebox.showerror("Не найден скрипт", f"Не могу найти {CLI_SCRIPT}")
+                return False
         return True
 
     def _start_create(self) -> None:
@@ -455,23 +609,16 @@ class CreateProjectApp(tk.Tk):
             return
 
         self.log.delete("1.0", tk.END)
-        self.status.config(text="Создаю проект...")
+        self.status.config(text="Настраиваю проект..." if self._is_existing_mode() else "Создаю проект...")
         self.create_button.config(state=tk.DISABLED)
         self.worker = threading.Thread(target=self._run_create, daemon=True)
         self.worker.start()
 
-    def _open_existing_project_setup(self) -> None:
-        if not INSTALL_GUI_SCRIPT.exists():
-            messagebox.showerror("Не найден скрипт", f"Не могу найти {INSTALL_GUI_SCRIPT}")
-            return
-        subprocess.Popen(
-            [find_python(), str(INSTALL_GUI_SCRIPT)],
-            cwd=str(ROOT),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-
     def _run_create(self) -> None:
+        if self._is_existing_mode():
+            self._run_existing_setup()
+            return
+
         command = [
             find_python(),
             str(CLI_SCRIPT),
@@ -490,10 +637,44 @@ class CreateProjectApp(tk.Tk):
         if features:
             command.extend(["--features", ",".join(features)])
         command.extend(["--deployment-plan", self._selected_deployment_plan()])
+        if self._selected_project_type() == "desktop-python":
+            command.extend(["--desktop-ui", self._selected_desktop_ui()])
+            if self.install_dependencies.get():
+                command.append("--install-dependencies")
         if not self.include_workflow_docs.get():
             command.append("--skip-workflow-docs")
 
-        self.output_queue.put(("line", "Создаю проект...\n"))
+        self._run_command_with_log(
+            command,
+            "Создаю проект. Если будут скачиваться репозитории или UI-пакеты, прогресс будет виден ниже.",
+        )
+
+    def _run_existing_setup(self) -> None:
+        command = [
+            find_python(),
+            str(INSTALL_SCRIPT),
+            "--target-path",
+            self.target_path.get(),
+            "--project-name",
+            self.project_name.get().strip(),
+            "--project-type",
+            self._selected_project_type(),
+            "--active-surfaces",
+            ",".join(self._selected_surfaces()),
+            "--deployment-plan",
+            self._selected_deployment_plan(),
+        ]
+        features = self._selected_features()
+        if features:
+            command.extend(["--features", ",".join(features)])
+        if not self.include_workflow_docs.get():
+            command.append("--skip-workflow-docs")
+
+        self._run_command_with_log(command, "Настраиваю существующий проект. Код проекта не перезаписывается.")
+
+    def _run_command_with_log(self, command: list[str], intro: str) -> None:
+        self.output_queue.put(("line", f"{intro}\n"))
+        self.output_queue.put(("line", f"Команда: {subprocess.list2cmdline(command)}\n"))
         process = subprocess.Popen(
             command,
             cwd=str(ROOT),
@@ -522,10 +703,12 @@ class CreateProjectApp(tk.Tk):
                     self.create_button.config(state=tk.NORMAL)
                     if code == 0:
                         self.status.config(text=f"Готово: {self.target_path.get()}")
-                        messagebox.showinfo("Проект создан", f"Создан проект:\n{self.target_path.get()}")
+                        title = "Проект настроен" if self._is_existing_mode() else "Проект создан"
+                        action = "Настроен проект" if self._is_existing_mode() else "Создан проект"
+                        messagebox.showinfo(title, f"{action}:\n{self.target_path.get()}")
                     else:
                         self.status.config(text=f"Ошибка, код {code}")
-                        messagebox.showerror("Проект не создан", "Посмотри лог в этом окне.")
+                        messagebox.showerror("Операция не выполнена", "Посмотри лог в этом окне.")
         except queue.Empty:
             pass
         self.after(100, self._drain_output)

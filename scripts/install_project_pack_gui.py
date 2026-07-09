@@ -14,7 +14,7 @@ from tkinter import filedialog, messagebox, ttk
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from create_vibe_project_gui import COLORS, DEPLOYMENT_PLANS, FEATURES, PROJECT_TYPES, find_python
-from project_options import LIMITED_FEATURE_PROJECT_TYPES, surfaces_for_project_type
+from project_options import HOSTING_PROJECT_TYPES, allowed_features_for_project_type, surfaces_for_project_type
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -98,14 +98,15 @@ class InstallProjectPackApp(tk.Tk):
         notebook = ttk.Notebook(root)
         notebook.grid(row=1, column=0, sticky="nsew")
 
-        project_tab = ttk.Frame(notebook, padding=16, style="Panel.TFrame")
+        project_tab_outer = ttk.Frame(notebook, style="Panel.TFrame")
         features_tab = ttk.Frame(notebook, padding=16, style="Panel.TFrame")
-        notebook.add(project_tab, text="Проект")
+        notebook.add(project_tab_outer, text="Проект")
         notebook.add(features_tab, text="Доп. функции")
 
+        project_tab = self._build_scrollable_tab(project_tab_outer)
         self._build_project_tab(project_tab)
         self._build_features_tab(features_tab)
-        self._sync_feature_controls()
+        self._sync_project_controls()
 
         bottom = ttk.Frame(root, style="App.TFrame")
         bottom.grid(row=2, column=0, sticky="ew", pady=(14, 0))
@@ -129,6 +130,22 @@ class InstallProjectPackApp(tk.Tk):
             font=("Consolas", 9),
         )
         self.log.grid(row=3, column=0, sticky="nsew", pady=(10, 0))
+
+    def _build_scrollable_tab(self, parent: ttk.Frame) -> ttk.Frame:
+        parent.columnconfigure(0, weight=1)
+        parent.rowconfigure(0, weight=1)
+
+        canvas = tk.Canvas(parent, bg=COLORS["surface"], highlightthickness=0)
+        scrollbar = ttk.Scrollbar(parent, orient="vertical", command=canvas.yview)
+        canvas.grid(row=0, column=0, sticky="nsew")
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        container = ttk.Frame(canvas, padding=16, style="Panel.TFrame")
+        window_id = canvas.create_window((0, 0), window=container, anchor="nw")
+        container.bind("<Configure>", lambda _event: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.bind("<Configure>", lambda event: canvas.itemconfigure(window_id, width=event.width))
+        return container
 
     def _build_project_tab(self, frame: ttk.Frame) -> None:
         frame.columnconfigure(1, weight=1)
@@ -173,19 +190,19 @@ class InstallProjectPackApp(tk.Tk):
             style="Muted.TLabel",
         ).grid(row=1, column=0, sticky="w", padx=(24, 0), pady=(4, 0))
 
-        deployment = self._section(frame, "План хостинга")
-        deployment.grid(row=4, column=0, columnspan=3, sticky="ew")
-        deployment.columnconfigure(1, weight=1)
-        ttk.Label(deployment, text="Где потом запускать", style="Field.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
+        self.deployment_section = self._section(frame, "План хостинга")
+        self.deployment_section.grid(row=4, column=0, columnspan=3, sticky="ew")
+        self.deployment_section.columnconfigure(1, weight=1)
+        ttk.Label(self.deployment_section, text="Где потом запускать", style="Field.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
         combo = ttk.Combobox(
-            deployment,
+            self.deployment_section,
             textvariable=self.deployment_plan_label,
             values=[label for _value, label, _description in DEPLOYMENT_PLANS],
             state="readonly",
             width=22,
         )
         combo.grid(row=0, column=1, sticky="w")
-        self.deployment_help = ttk.Label(deployment, text="", wraplength=760, style="Muted.TLabel")
+        self.deployment_help = ttk.Label(self.deployment_section, text="", wraplength=760, style="Muted.TLabel")
         self.deployment_help.grid(row=1, column=0, columnspan=2, sticky="w", pady=(6, 0))
         combo.bind("<<ComboboxSelected>>", self._update_deployment_help)
         self._update_deployment_help()
@@ -238,20 +255,20 @@ class InstallProjectPackApp(tk.Tk):
 
     def _on_project_type_changed(self, _event: tk.Event | None = None) -> None:
         self._update_project_type_help()
+        self._sync_project_controls()
+
+    def _sync_project_controls(self) -> None:
         self._sync_feature_controls()
+        self._sync_deployment_controls()
 
     def _sync_feature_controls(self) -> None:
-        if self._selected_project_type() in LIMITED_FEATURE_PROJECT_TYPES:
-            for feature_id, checkbutton in self.feature_checkbuttons.items():
-                if feature_id == "design-starter":
-                    checkbutton.state(["!disabled"])
-                else:
-                    self.feature_vars[feature_id].set(False)
-                    checkbutton.state(["disabled"])
-            return
-
-        for checkbutton in self.feature_checkbuttons.values():
-            checkbutton.state(["!disabled"])
+        allowed = allowed_features_for_project_type(self._selected_project_type(), tuple(self.feature_vars))
+        for feature_id, checkbutton in self.feature_checkbuttons.items():
+            if feature_id in allowed:
+                checkbutton.state(["!disabled"])
+            else:
+                self.feature_vars[feature_id].set(False)
+                checkbutton.state(["disabled"])
 
     def _browse_target(self) -> None:
         selected = filedialog.askdirectory(title="Выбери папку существующего проекта", initialdir=self.target_path.get())
@@ -267,8 +284,17 @@ class InstallProjectPackApp(tk.Tk):
         self.deployment_help.config(text=description)
 
     def _selected_deployment_plan(self) -> str:
+        if self._selected_project_type() not in HOSTING_PROJECT_TYPES:
+            return "decide-later"
         selected = self.deployment_plan_label.get()
         return next((value for value, label, _description in DEPLOYMENT_PLANS if label == selected), "decide-later")
+
+    def _sync_deployment_controls(self) -> None:
+        if self._selected_project_type() in HOSTING_PROJECT_TYPES:
+            self.deployment_section.grid()
+        else:
+            self.deployment_plan_label.set(DEPLOYMENT_PLANS[0][1])
+            self.deployment_section.grid_remove()
 
     def _selected_surfaces(self) -> list[str]:
         return surfaces_for_project_type(self._selected_project_type())

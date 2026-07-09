@@ -31,10 +31,13 @@ The installer should stay focused:
 - Mobile design: before feature work, create a small project-specific mobile component library instead of adding Tamagui by default.
 - Optional `design-starter` feature pack adds design workflow docs/prompts using shadcn/ui Blocks, Magic UI, Origin UI, and cautious mobile component guidance.
 - Chrome extension base: `JohnBra/vite-web-extension` is available through `--template chrome-extension`.
-- Desktop Python app base: small local `tkinter` starter, no external UI dependency by default.
+- Desktop app base: local starter with selectable UI stack: `tkinter`, `customtkinter`, `pyside6`, `flet`, or `tauri-shadcn`.
+- Desktop UI package install is opt-in. By default, the installer writes starter files and package manifests only; it does not create `.venv`, `node_modules`, or download large UI packages.
 - Generated projects include Russian docs: `START_HERE.ru.md`, `PRD.ru.md`, `TASKS.ru.md`, and `wiki/ru/`.
 - Deployment docs: generated projects include provider notes for Hetzner, Timeweb, and Hostinger under `wiki/deployment-providers/`.
 - Deployment remains documentation-only during project creation; no hosting accounts, paid resources, or cloud services are created.
+- Deployment plan selection is shown only for website, landing, and mobile web app projects. Desktop app and Chrome extension projects use `Decide later`.
+- Online template clone uses `git clone --progress` so GUI logs show repository download progress. Explicit desktop UI package install streams `pip` or `npm` output to the same log.
 
 ## Local Template Archives
 
@@ -111,7 +114,8 @@ Before changing behavior:
 4. Confirm the generated README contains `Project Bootstrap Plan`.
 5. Confirm active/deferred surfaces are marked correctly when those READMEs exist.
 6. Confirm upstream `origin` is removed unless `-KeepTemplateRemote` is passed.
-7. Report the exact verification command and result.
+7. For desktop changes, confirm package install is still opt-in and a default scratch install does not create `.venv` or `node_modules`.
+8. Report the exact verification command and result.
 
 ## Current Backlog
 

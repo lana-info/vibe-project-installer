@@ -89,7 +89,9 @@ python .\scripts\create_vibe_project_gui.py --self-test
 
 ## Configure An Existing Project
 
-Use this when the project already exists and you want to add vibe-coding setup safely:
+In the main GUI, switch `Режим` from `Новый проект` to `Существующий проект`.
+
+You can also open the existing-project setup directly:
 
 ```powershell
 python .\scripts\install_project_pack_gui.py --target-path "D:\WorkOS\Existing App"

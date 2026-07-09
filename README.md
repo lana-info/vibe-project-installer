@@ -13,14 +13,20 @@ The goal is to keep project startup simple:
 - create starter workflow files from `templates/project-pack`;
 - include English and Russian starter docs;
 - add optional feature checklists and prompts for app projects: payments, uploads/media, social auth, push notifications, background jobs, cron, E2E tests, admin, realtime, marketplace/catalog, AI features, and design starter;
-- record a documentation-only deployment plan: decide later, Hetzner, Timeweb, DigitalOcean, Hostinger, or custom hosting;
+- record a documentation-only deployment plan for website, landing, and mobile web app projects: decide later, Hetzner, Timeweb, DigitalOcean, Hostinger, or custom hosting;
+- choose a desktop UI starter for desktop projects without downloading UI packages unless explicitly requested;
 - remove the template Git remote by default so new projects do not push back to upstream.
 
 ## Quick Start
 
 To open the GUI app on Windows, macOS, or Linux, see `RUN_APP.md`.
 
-Install vibe-coding workflow docs into an existing project:
+In the GUI, use the `Режим` switch:
+
+- `Новый проект` creates a fresh project folder.
+- `Существующий проект` safely adds vibe-coding setup files to an existing folder.
+
+You can also open the existing-project setup directly:
 
 ```powershell
 python .\scripts\install_project_pack_gui.py --target-path "D:\WorkOS\Existing App"
@@ -80,8 +86,21 @@ Create a simple desktop Python app:
 python .\scripts\create-vibe-project.py `
   --target-path "D:\WorkOS\My Desktop App" `
   --project-name "My Desktop App" `
-  --project-type desktop-python
+  --project-type desktop-python `
+  --desktop-ui customtkinter
 ```
+
+For desktop projects, the installer creates the selected starter files and package manifests by default. Turn on UI package install in the GUI, or pass `--install-dependencies`, only when you want it to download packages immediately; the log shows the running commands and download output.
+
+The GUI labels this as `Пакеты интерфейса`. It is off by default so the project stays light: files such as `requirements.txt` or `package.json` are created, but `.venv`, `node_modules`, and large UI packages are not downloaded until the user explicitly opts in.
+
+Desktop UI choices:
+
+- `tkinter`: simplest utility or rough prototype, no extra dependencies.
+- `customtkinter`: nicer Python-only UI for a small app. Approximate download: 5-20 MB.
+- `pyside6`: professional Python desktop UI for larger apps. Approximate download: 150-300+ MB.
+- `flet`: fast Python app with a web-like UI model. Approximate download: 30-100 MB.
+- `tauri-shadcn`: best for a polished work-dashboard app: sidebar, cards, search, clean buttons, and a modern paid-product look. Uses React, Tailwind, shadcn/ui-style composition, and Tauri. Approximate download: 150-400+ MB, not counting Rust/Tauri tools if missing.
 
 Create a Chrome extension project:
 
@@ -93,7 +112,7 @@ python .\scripts\create-vibe-project.py `
 ```
 
 Chrome extension is a separate project base. Do not combine it with website, landing, mobile app, web app, desktop app, or backend.
-For Website, Landing, Desktop Python, and Chrome extension projects, the GUI only allows workflow docs and the optional `Design starter` feature pack.
+For Website and Landing projects, the GUI allows relevant web/landing feature packs. Desktop Python and Chrome extension projects stay limited to workflow docs and the optional `Design starter` feature pack.
 
 Create a web/backend project from upstream:
 
@@ -130,7 +149,9 @@ Create from a local checkout by running the script inside a local `vibe` repo co
 
 Project creation does not configure hosting or create cloud resources. Decide deployment later when the product is ready to launch.
 
-The GUI can record a deployment plan for project docs: `Decide later`, `Hetzner`, `Timeweb`, `DigitalOcean`, `Hostinger`, or `Custom hosting`. This only writes checklists and prompts. It does not deploy, connect accounts, or create paid resources.
+The GUI can record a deployment plan for website, landing, and mobile web app project docs: `Decide later`, `Hetzner`, `Timeweb`, `DigitalOcean`, `Hostinger`, or `Custom hosting`. This only writes checklists and prompts. It does not deploy, connect accounts, or create paid resources. Desktop app and Chrome extension projects do not show hosting choices.
+
+When a project is cloned from an online template repository, `git clone --progress` is used so the GUI log shows download progress. If UI package install is explicitly enabled for a desktop project, the `pip` or `npm` output is also streamed to the log.
 
 Generated projects include provider notes for Hetzner, Timeweb, and Hostinger under `wiki/deployment-providers/`.
 

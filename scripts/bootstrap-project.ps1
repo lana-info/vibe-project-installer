@@ -113,9 +113,9 @@ function Clone-RepoTree {
     }
 
     if ([string]::IsNullOrWhiteSpace($GitBranch)) {
-        git clone --depth 1 $Url $Destination
+        git clone --progress --depth 1 $Url $Destination
     } else {
-        git clone --depth 1 --branch $GitBranch $Url $Destination
+        git clone --progress --depth 1 --branch $GitBranch $Url $Destination
     }
     if ($LASTEXITCODE -ne 0) {
         $branchText = if ([string]::IsNullOrWhiteSpace($GitBranch)) { 'default branch' } else { "branch $GitBranch" }
