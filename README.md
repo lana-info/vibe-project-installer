@@ -7,12 +7,12 @@ Use the Python CLI for day-to-day project creation. It calls the PowerShell inst
 The goal is to keep project startup simple:
 
 - create a fresh project folder;
-- choose a base template: `Mobile app + Web` or `Chrome extension`;
-- for Vibe projects, `Mobile app + Web` records `web,mobile,backend` because the upstream mobile branch includes the mobile app, browser web app/site, and backend/API;
+- choose a project type: `Website`, `Landing`, `Mobile app + Web app`, `Desktop Python app`, or `Chrome extension`;
+- map the project type to the right starter automatically;
 - record the bootstrap plan in the generated project README;
 - create starter workflow files from `templates/project-pack`;
 - include English and Russian starter docs;
-- add optional feature checklists and prompts for payments, uploads/media, social auth, push notifications, background jobs, cron, E2E tests, admin, realtime, marketplace/catalog, AI features, and design starter;
+- add optional feature checklists and prompts for app projects: payments, uploads/media, social auth, push notifications, background jobs, cron, E2E tests, admin, realtime, marketplace/catalog, AI features, and design starter;
 - record a documentation-only deployment plan: decide later, Hetzner, Timeweb, DigitalOcean, Hostinger, or custom hosting;
 - remove the template Git remote by default so new projects do not push back to upstream.
 
@@ -36,16 +36,43 @@ python .\scripts\install-project-pack.py `
   --deployment-plan decide-later
 ```
 
-Create a mobile app + web project with the Python CLI:
+Create a website project with the Python CLI:
+
+```powershell
+python .\scripts\create-vibe-project.py `
+  --target-path "D:\WorkOS\My Website" `
+  --project-name "My Website" `
+  --project-type website
+```
+
+Create a landing page project:
+
+```powershell
+python .\scripts\create-vibe-project.py `
+  --target-path "D:\WorkOS\My Landing" `
+  --project-name "My Landing" `
+  --project-type landing
+```
+
+Create a mobile app + web app project:
 
 ```powershell
 python .\scripts\create-vibe-project.py `
   --target-path "D:\WorkOS\My App" `
   --project-name "My App" `
-  --active-surfaces mobile
+  --project-type mobile-web-app
 ```
 
-The CLI expands `mobile` to `mobile,web,backend` for Vibe projects because the upstream mobile branch is the mobile app + web + backend template line.
+This uses the upstream `mobile` branch because that branch includes the mobile app, web app/site, and backend/API.
+
+Create a simple desktop Python app:
+
+```powershell
+python .\scripts\create-vibe-project.py `
+  --target-path "D:\WorkOS\My Desktop App" `
+  --project-name "My Desktop App" `
+  --project-type desktop-python
+```
 
 Create a Chrome extension project:
 
@@ -53,12 +80,11 @@ Create a Chrome extension project:
 python .\scripts\create-vibe-project.py `
   --target-path "D:\WorkOS\My Extension" `
   --project-name "My Extension" `
-  --template chrome-extension `
-  --active-surfaces chrome-extension
+  --project-type chrome-extension
 ```
 
-Chrome extension is a separate project base. Do not combine it with `web`, `mobile`, `backend`, or `landing`.
-For Chrome extension projects, the GUI only allows workflow docs and the optional `Design starter` feature pack.
+Chrome extension is a separate project base. Do not combine it with website, landing, mobile app, web app, desktop app, or backend.
+For Website, Landing, Desktop Python, and Chrome extension projects, the GUI only allows workflow docs and the optional `Design starter` feature pack.
 
 Create a web/backend project from upstream:
 
@@ -101,9 +127,11 @@ Generated projects include provider notes for Hetzner, Timeweb, and Hostinger un
 
 ## Project Pack
 
-The app code comes from `di-sukharev/vibe`. The working instructions, checklists, and prompts come from this installer repo:
+The app code comes from the selected starter. The working instructions, checklists, and prompts come from this installer repo.
 
-Chrome extension projects use `JohnBra/vite-web-extension` as the app template.
+- Website, Landing, and Mobile app + Web app use `di-sukharev/vibe`.
+- Chrome extension projects use `JohnBra/vite-web-extension`.
+- Desktop Python projects use a small local starter under `templates/app-templates/python-desktop`.
 
 - `templates/project-pack/base` - copied into every new project.
 - `templates/project-pack/features` - copied only for selected feature checkboxes.

@@ -23,8 +23,8 @@ $ErrorActionPreference = 'Stop'
 
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sourceRoot = Split-Path -Parent $scriptRoot
-$knownSurfaces = @('web', 'mobile', 'backend', 'landing', 'chrome-extension')
-$fullStackSurfaces = @('web', 'mobile', 'backend', 'landing')
+$knownSurfaces = @('website', 'web', 'mobile', 'backend', 'landing', 'desktop-python', 'chrome-extension')
+$fullStackSurfaces = @('website', 'web', 'mobile', 'backend')
 
 function Resolve-Surfaces {
     param([string[]]$Requested)
@@ -39,6 +39,10 @@ function Resolve-Surfaces {
                 'fullstack' { 'full-stack' }
                 'api' { 'backend' }
                 'backend/api' { 'backend' }
+                'site' { 'website' }
+                'web-site' { 'website' }
+                'desktop' { 'desktop-python' }
+                'python-desktop' { 'desktop-python' }
                 default { $value }
             }
         } | Where-Object { $_ }
@@ -50,7 +54,11 @@ function Resolve-Surfaces {
         }
 
         if (($normalized -contains 'chrome-extension') -and ($normalized.Count -gt 1)) {
-            throw 'chrome-extension cannot be combined with web, mobile, backend, landing, or full-stack. Create it as a separate project template.'
+            throw 'chrome-extension cannot be combined with website, web, mobile, backend, landing, desktop-python, or full-stack. Create it as a separate project template.'
+        }
+
+        if (($normalized -contains 'desktop-python') -and ($normalized.Count -gt 1)) {
+            throw 'desktop-python cannot be combined with website, web, mobile, backend, landing, chrome-extension, or full-stack. Create it as a separate project template.'
         }
 
         $invalid = $normalized | Where-Object { $knownSurfaces -notcontains $_ }
@@ -281,6 +289,10 @@ Use only when the product needs a real mobile app. Keep mobile deferred if the M
 ## landing
 
 Use for a simple marketing page when the project does not need a full public website yet.
+
+## desktop-python
+
+Use for a simple local computer app that runs with Python. It is not a website, mobile app, or browser extension.
 
 "@
 }
@@ -523,7 +535,9 @@ Update-RootReadme `
 foreach ($surface in $knownSurfaces) {
     $readmeCandidates = switch ($surface) {
         'web' { @('web\README.md', 'webapp\README.md') }
+        'website' { @('website\README.md') }
         'landing' { @('landing\README.md', 'website\README.md') }
+        'desktop-python' { @('README.md') }
         default { @("$surface\README.md") }
     }
 

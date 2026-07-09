@@ -7,8 +7,8 @@ This repository is a small PowerShell wrapper for creating new projects from the
 The installer should stay focused:
 
 - clone or copy a vibe template;
-- choose a project base: `Mobile app + Web` or `Chrome extension`;
-- for Vibe projects, `mobile` expands to `mobile,web,backend` because the upstream mobile branch contains the mobile app, browser web app/site, and backend/API;
+- choose a project type: `Website`, `Landing`, `Mobile app + Web app`, `Desktop Python app`, or `Chrome extension`;
+- map project type to template/surfaces automatically;
 - keep cloud setup out of project creation by default;
 - write the bootstrap plan into the generated project `README.md`;
 - remove the upstream template remote by default.
@@ -20,6 +20,7 @@ The installer should stay focused:
 - `TASKS.md` - small backlog for this wrapper project.
 - `scripts/bootstrap-project.ps1` - the installer implementation.
 - `scripts/sync-upstream-archive.ps1` - keeps local copies of upstream template repos outside this repo.
+- `templates/app-templates/python-desktop/` - local starter for simple Python desktop apps.
 - `templates/project-pack/` - workflow, prompt, and feature checklist templates copied into generated projects.
 - `examples/` - copyable example commands.
 - `AGENTS.md` - local agent rules and safety constraints.
@@ -30,6 +31,7 @@ The installer should stay focused:
 - Mobile design: before feature work, create a small project-specific mobile component library instead of adding Tamagui by default.
 - Optional `design-starter` feature pack adds design workflow docs/prompts using shadcn/ui Blocks, Magic UI, Origin UI, and cautious mobile component guidance.
 - Chrome extension base: `JohnBra/vite-web-extension` is available through `--template chrome-extension`.
+- Desktop Python app base: small local `tkinter` starter, no external UI dependency by default.
 - Generated projects include Russian docs: `START_HERE.ru.md`, `PRD.ru.md`, `TASKS.ru.md`, and `wiki/ru/`.
 - Deployment docs: generated projects include provider notes for Hetzner, Timeweb, and Hostinger under `wiki/deployment-providers/`.
 - Deployment remains documentation-only during project creation; no hosting accounts, paid resources, or cloud services are created.

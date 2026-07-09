@@ -11,7 +11,8 @@ Source checked:
 
 - Surfaces: `web`, `mobile`, `backend`, `landing`, `full-stack`.
 - Hosting is not shown in the GUI. The app creates projects in provider-neutral mode by default.
-- Default project type should be shown as `mobile + web`. Under the hood it includes `backend` as API support for auth, data, and app logic.
+- GUI project types are now explicit: `Website`, `Landing`, `Mobile app + Web app`, `Desktop Python app`, and `Chrome extension`.
+- `Mobile app + Web app` uses the upstream `mobile` branch and includes `web,mobile,backend`.
 - When `mobile` is active, use the upstream `mobile` branch. The `master` branch has only a mobile pointer README.
 - Project instructions, prompts, and feature checklists come from this installer repo under `templates/project-pack`, not from upstream.
 
@@ -53,6 +54,6 @@ These should be product/intake toggles first. They should write a bootstrap plan
 
 ## Suggested UI Grouping
 
-- Project type: `mobile + web` default, `web only`, `mobile only`, `landing/public site`, `full-stack`.
+- Project type: `Website`, `Landing`, `Mobile app + Web app`, `Desktop Python app`, or `Chrome extension`.
 - Core capabilities: auth, database, uploads/media, payments/subscriptions, social auth, push notifications, background jobs, scheduled tasks, E2E tests, admin, realtime.
 - Deployment plan: decide later, Hetzner, Timeweb, DigitalOcean, Hostinger, or custom. This should stay documentation-only during project creation.
