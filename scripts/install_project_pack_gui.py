@@ -14,6 +14,7 @@ from tkinter import filedialog, messagebox, ttk
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from create_vibe_project_gui import COLORS, DEPLOYMENT_PLANS, FEATURES, PROJECT_TYPES, find_python
+from project_options import LIMITED_FEATURE_PROJECT_TYPES, surfaces_for_project_type
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -240,7 +241,7 @@ class InstallProjectPackApp(tk.Tk):
         self._sync_feature_controls()
 
     def _sync_feature_controls(self) -> None:
-        if self._selected_project_type() != "mobile-web-app":
+        if self._selected_project_type() in LIMITED_FEATURE_PROJECT_TYPES:
             for feature_id, checkbutton in self.feature_checkbuttons.items():
                 if feature_id == "design-starter":
                     checkbutton.state(["!disabled"])
@@ -270,18 +271,7 @@ class InstallProjectPackApp(tk.Tk):
         return next((value for value, label, _description in DEPLOYMENT_PLANS if label == selected), "decide-later")
 
     def _selected_surfaces(self) -> list[str]:
-        project_type = self._selected_project_type()
-        if project_type == "website":
-            return ["website"]
-        if project_type == "landing":
-            return ["landing"]
-        if project_type == "mobile-web-app":
-            return ["web", "mobile", "backend"]
-        if project_type == "desktop-python":
-            return ["desktop-python"]
-        if project_type == "chrome-extension":
-            return ["chrome-extension"]
-        return ["web", "mobile", "backend"]
+        return surfaces_for_project_type(self._selected_project_type())
 
     def _selected_features(self) -> list[str]:
         return [feature for feature, value in self.feature_vars.items() if value.get()]

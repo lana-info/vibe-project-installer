@@ -13,6 +13,8 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
+from project_options import LIMITED_FEATURE_PROJECT_TYPES, surfaces_for_project_type
+
 
 ROOT = Path(__file__).resolve().parents[1]
 CLI_SCRIPT = ROOT / "scripts" / "create-vibe-project.py"
@@ -384,8 +386,7 @@ class CreateProjectApp(tk.Tk):
         self._sync_feature_controls()
 
     def _sync_feature_controls(self) -> None:
-        limited_types = {"chrome-extension", "desktop-python", "website", "landing"}
-        if self._selected_project_type() in limited_types:
+        if self._selected_project_type() in LIMITED_FEATURE_PROJECT_TYPES:
             for feature_id, checkbutton in self.feature_checkbuttons.items():
                 if feature_id == "design-starter":
                     checkbutton.state(["!disabled"])
@@ -398,18 +399,7 @@ class CreateProjectApp(tk.Tk):
             checkbutton.state(["!disabled"])
 
     def _selected_surfaces(self) -> list[str]:
-        project_type = self._selected_project_type()
-        if project_type == "website":
-            return ["website"]
-        if project_type == "landing":
-            return ["landing"]
-        if project_type == "mobile-web-app":
-            return ["web", "mobile", "backend"]
-        if project_type == "desktop-python":
-            return ["desktop-python"]
-        if project_type == "chrome-extension":
-            return ["chrome-extension"]
-        return ["website"]
+        return surfaces_for_project_type(self._selected_project_type())
 
     def _update_deployment_help(self, _event: tk.Event | None = None) -> None:
         selected = self.deployment_plan_label.get()

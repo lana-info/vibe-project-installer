@@ -7,6 +7,8 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 
+from project_options import PROJECT_TYPE_SURFACES, SIMPLE_PROJECT_FEATURES
+
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT_PACK_ROOT = ROOT / "templates" / "project-pack"
 PROJECT_TYPES = ("website", "landing", "mobile-web-app", "desktop-python", "chrome-extension")
@@ -31,14 +33,6 @@ FEATURES = {
     "marketplace-catalog": "Marketplace / catalog",
     "ai-features": "AI features",
     "design-starter": "Design starter",
-}
-SIMPLE_PROJECT_FEATURES = {"design-starter"}
-PROJECT_TYPE_SURFACES = {
-    "website": ["website"],
-    "landing": ["landing"],
-    "mobile-web-app": ["web", "mobile", "backend"],
-    "desktop-python": ["desktop-python"],
-    "chrome-extension": ["chrome-extension"],
 }
 
 
