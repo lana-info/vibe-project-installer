@@ -20,6 +20,8 @@ The goal is to keep project startup simple:
 ## Quick Start
 
 To open the GUI app on Windows, macOS, or Linux, see `RUN_APP.md`.
+To install or check Python, Git, PowerShell, Node.js, and npm, see `INSTALL_DEPENDENCIES.md`.
+Codex CLI is not required.
 
 In the GUI, use the `Режим` switch:
 

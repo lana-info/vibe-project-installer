@@ -22,6 +22,7 @@ from project_options import (
     desktop_ui_option,
     surfaces_for_project_type,
 )
+from system_dependencies import check_system_dependencies, format_dependency_report
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -234,10 +235,17 @@ class CreateProjectApp(tk.Tk):
         bottom.columnconfigure(1, weight=1)
 
         self.create_button = ttk.Button(bottom, text="Создать проект", command=self._start_create, style="Accent.TButton")
-        self.create_button.grid(row=0, column=0, sticky="w")
+        self.dependency_check_button = ttk.Button(
+            bottom,
+            text="Проверить зависимости",
+            command=self._show_dependency_check,
+            style="Secondary.TButton",
+        )
+        self.dependency_check_button.grid(row=0, column=0, sticky="w")
+        self.create_button.grid(row=0, column=1, sticky="w", padx=(10, 0))
 
         self.status = ttk.Label(bottom, text="Готово")
-        self.status.grid(row=0, column=1, sticky="w", padx=(12, 0))
+        self.status.grid(row=0, column=2, sticky="w", padx=(12, 0))
 
         self._sync_template_controls()
 
@@ -601,6 +609,22 @@ class CreateProjectApp(tk.Tk):
                 messagebox.showerror("Не найден скрипт", f"Не могу найти {CLI_SCRIPT}")
                 return False
         return True
+
+    def _show_dependency_check(self) -> None:
+        checks = check_system_dependencies()
+        report = format_dependency_report(checks)
+        self.log.delete("1.0", tk.END)
+        self.log.insert(tk.END, report)
+        self.log.see(tk.END)
+
+        missing_required = [check.name for check in checks if check.required and not check.found]
+        if missing_required:
+            messagebox.showwarning(
+                "Не хватает зависимостей",
+                "Для создания новых проектов нужно установить: " + ", ".join(missing_required),
+            )
+        else:
+            messagebox.showinfo("Зависимости проверены", "Минимум для создания проектов установлен.")
 
     def _start_create(self) -> None:
         if self.worker and self.worker.is_alive():

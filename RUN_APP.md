@@ -2,7 +2,13 @@
 
 This app can run without building an `.exe`, `.app`, or Linux package.
 
-The GUI is Python/Tkinter. Project creation also calls `scripts/bootstrap-project.ps1`, so macOS and Linux need PowerShell 7 (`pwsh`) installed.
+The GUI is Python/Tkinter, so Python must be installed on the computer that opens the app.
+Project creation also calls `scripts/bootstrap-project.ps1`, so new-project creation needs Git and PowerShell.
+Node.js/npm are needed later for web, Chrome extension, Vite, Tailwind, shadcn/ui, and Tauri work.
+
+Codex CLI is not required.
+
+For dependency install commands, see `INSTALL_DEPENDENCIES.md`.
 
 ## Windows
 
@@ -79,12 +85,38 @@ From the repo folder:
 
 ```bash
 python3 scripts/create_vibe_project_gui.py --self-test
+python3 scripts/check-system-dependencies.py
 ```
 
 On Windows, use `python` instead of `python3` if that is your installed command:
 
 ```powershell
 python .\scripts\create_vibe_project_gui.py --self-test
+python .\scripts\check-system-dependencies.py
+```
+
+## Package For Another User
+
+This creates a portable zip folder. It is not an installer and does not include Python, Git, PowerShell, Node.js, or npm.
+
+On Windows:
+
+```powershell
+.\scripts\package-app.ps1
+```
+
+Send the created `dist/vibe-project-installer-portable-*.zip` file.
+
+The other user should unzip it, install the dependencies from `INSTALL_DEPENDENCIES.md`, then open:
+
+```text
+Create Vibe Project.vbs
+```
+
+On macOS/Linux, they can run:
+
+```bash
+python3 scripts/create_vibe_project_gui.py
 ```
 
 ## Configure An Existing Project
