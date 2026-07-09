@@ -89,7 +89,7 @@ python .\scripts\create_vibe_project_gui.py --self-test
 
 ## Configure An Existing Project
 
-Use this when the project already exists and you only want to add vibe-coding docs/prompts:
+Use this when the project already exists and you want to add vibe-coding setup safely:
 
 ```powershell
 python .\scripts\install_project_pack_gui.py --target-path "D:\WorkOS\Existing App"
@@ -100,6 +100,8 @@ On macOS/Linux:
 ```bash
 python3 scripts/install_project_pack_gui.py --target-path "/path/to/existing-app"
 ```
+
+This mode creates `SETUP_AUDIT.md`, adds only missing docs/prompts, and does not install dependencies automatically.
 
 ## Notes
 

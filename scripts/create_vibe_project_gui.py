@@ -16,6 +16,7 @@ from tkinter import filedialog, messagebox, ttk
 
 ROOT = Path(__file__).resolve().parents[1]
 CLI_SCRIPT = ROOT / "scripts" / "create-vibe-project.py"
+INSTALL_GUI_SCRIPT = ROOT / "scripts" / "install_project_pack_gui.py"
 DEFAULT_PARENT = Path("D:/WorkOS")
 PROJECT_TYPES = (
     ("website", "Website", "Обычный сайт, который работает в браузере на телефоне и компьютере."),
@@ -217,13 +218,21 @@ class CreateProjectApp(tk.Tk):
 
         bottom = ttk.Frame(root, style="App.TFrame")
         bottom.grid(row=2, column=0, sticky="ew", pady=(14, 0))
-        bottom.columnconfigure(1, weight=1)
+        bottom.columnconfigure(2, weight=1)
 
         self.create_button = ttk.Button(bottom, text="Создать проект", command=self._start_create, style="Accent.TButton")
         self.create_button.grid(row=0, column=0, sticky="w")
 
+        self.setup_existing_button = ttk.Button(
+            bottom,
+            text="Настроить существующий проект",
+            command=self._open_existing_project_setup,
+            style="Secondary.TButton",
+        )
+        self.setup_existing_button.grid(row=0, column=1, sticky="w", padx=(12, 0))
+
         self.status = ttk.Label(bottom, text="Готово")
-        self.status.grid(row=0, column=1, sticky="w", padx=(12, 0))
+        self.status.grid(row=0, column=2, sticky="w", padx=(12, 0))
 
         self.log = tk.Text(root, height=8, wrap="word")
         self.log.configure(
@@ -460,6 +469,17 @@ class CreateProjectApp(tk.Tk):
         self.create_button.config(state=tk.DISABLED)
         self.worker = threading.Thread(target=self._run_create, daemon=True)
         self.worker.start()
+
+    def _open_existing_project_setup(self) -> None:
+        if not INSTALL_GUI_SCRIPT.exists():
+            messagebox.showerror("Не найден скрипт", f"Не могу найти {INSTALL_GUI_SCRIPT}")
+            return
+        subprocess.Popen(
+            [find_python(), str(INSTALL_GUI_SCRIPT)],
+            cwd=str(ROOT),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
     def _run_create(self) -> None:
         command = [

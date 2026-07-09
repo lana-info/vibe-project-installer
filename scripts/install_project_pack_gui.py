@@ -13,7 +13,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from create_vibe_project_gui import COLORS, DEPLOYMENT_PLANS, FEATURES, SURFACES, find_python
+from create_vibe_project_gui import COLORS, DEPLOYMENT_PLANS, FEATURES, PROJECT_TYPES, find_python
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,14 +31,11 @@ class InstallProjectPackApp(tk.Tk):
         initial_target = (target_path or Path.cwd()).resolve()
         self.target_path = tk.StringVar(value=str(initial_target))
         self.project_name = tk.StringVar(value=initial_target.name)
+        self.project_type_label = tk.StringVar(value=PROJECT_TYPES[2][1])
+        self.include_workflow_docs = tk.BooleanVar(value=True)
         self.deployment_plan_label = tk.StringVar(value=DEPLOYMENT_PLANS[0][1])
-        self.surface_vars = {
-            "web": tk.BooleanVar(value=True),
-            "backend": tk.BooleanVar(value=True),
-            "mobile": tk.BooleanVar(value=True),
-            "landing": tk.BooleanVar(value=False),
-        }
         self.feature_vars = {feature_id: tk.BooleanVar(value=False) for feature_id, _label, _description in FEATURES}
+        self.feature_checkbuttons: dict[str, ttk.Checkbutton] = {}
         self.output_queue: queue.Queue[tuple[str, str | int]] = queue.Queue()
         self.worker: threading.Thread | None = None
 
@@ -92,7 +89,7 @@ class InstallProjectPackApp(tk.Tk):
         ttk.Label(hero, text="Vibe Coding Setup", style="HeroTitle.TLabel").grid(row=0, column=0, sticky="w")
         ttk.Label(
             hero,
-            text="Настройка уже существующего проекта: добавляет START_HERE, PRD, TASKS, wiki, prompts и выбранные feature packs.",
+            text="Безопасное обновление существующего проекта: audit, docs, prompts и выбранные feature packs без перезаписи кода.",
             style="HeroText.TLabel",
             wraplength=820,
         ).grid(row=1, column=0, sticky="w", pady=(6, 0))
@@ -107,6 +104,7 @@ class InstallProjectPackApp(tk.Tk):
 
         self._build_project_tab(project_tab)
         self._build_features_tab(features_tab)
+        self._sync_feature_controls()
 
         bottom = ttk.Frame(root, style="App.TFrame")
         bottom.grid(row=2, column=0, sticky="ew", pady=(14, 0))
@@ -143,22 +141,39 @@ class InstallProjectPackApp(tk.Tk):
         ttk.Label(frame, text="Название проекта", style="Field.TLabel").grid(row=1, column=0, sticky="w", pady=6)
         ttk.Entry(frame, textvariable=self.project_name).grid(row=1, column=1, columnspan=2, sticky="ew", pady=6)
 
-        surfaces = self._section(frame, "Тип проекта")
-        surfaces.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(8, 10))
+        project_type = self._section(frame, "Тип проекта")
+        project_type.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(8, 10))
+        project_type.columnconfigure(1, weight=1)
+        ttk.Label(project_type, text="Что это за проект", style="Field.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
+        combo_type = ttk.Combobox(
+            project_type,
+            textvariable=self.project_type_label,
+            values=[label for _value, label, _description in PROJECT_TYPES],
+            state="readonly",
+            width=30,
+        )
+        combo_type.grid(row=0, column=1, sticky="w")
+        self.project_type_help = ttk.Label(project_type, text="", wraplength=760, style="Muted.TLabel")
+        self.project_type_help.grid(row=1, column=0, columnspan=2, sticky="w", pady=(6, 0))
+        combo_type.bind("<<ComboboxSelected>>", self._on_project_type_changed)
+        self._update_project_type_help()
+
+        docs = self._section(frame, "Безопасная установка")
+        docs.grid(row=3, column=0, columnspan=3, sticky="ew", pady=(0, 10))
+        ttk.Checkbutton(
+            docs,
+            text="Добавить недостающие START_HERE, PRD, TASKS, wiki и prompts",
+            variable=self.include_workflow_docs,
+        ).grid(row=0, column=0, sticky="w")
         ttk.Label(
-            surfaces,
-            text="По умолчанию: Mobile + Web. Backend/API включён для логина, данных и логики приложения.",
+            docs,
+            text="Существующие файлы не перезаписываются. Всегда создается SETUP_AUDIT.md с найденными зависимостями и следующим безопасным prompt.",
             wraplength=760,
             style="Muted.TLabel",
-        ).grid(row=0, column=0, columnspan=4, sticky="w", pady=(0, 8))
-        for index, surface in enumerate(SURFACES):
-            label = "backend/API поддержка" if surface == "backend" else surface
-            ttk.Checkbutton(surfaces, text=label, variable=self.surface_vars[surface]).grid(
-                row=1, column=index, padx=(0, 22), sticky="w"
-            )
+        ).grid(row=1, column=0, sticky="w", padx=(24, 0), pady=(4, 0))
 
         deployment = self._section(frame, "План хостинга")
-        deployment.grid(row=3, column=0, columnspan=3, sticky="ew")
+        deployment.grid(row=4, column=0, columnspan=3, sticky="ew")
         deployment.columnconfigure(1, weight=1)
         ttk.Label(deployment, text="Где потом запускать", style="Field.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
         combo = ttk.Combobox(
@@ -201,13 +216,41 @@ class InstallProjectPackApp(tk.Tk):
             cell = ttk.Frame(features, padding=(10, 8), style="Card.TFrame")
             cell.grid(row=row, column=column, sticky="new", padx=(0 if column == 0 else 12, 12 if column == 0 else 0), pady=(0, 8))
             cell.columnconfigure(0, weight=1)
-            ttk.Checkbutton(cell, text=label, variable=self.feature_vars[feature_id]).grid(row=0, column=0, sticky="w")
+            checkbutton = ttk.Checkbutton(cell, text=label, variable=self.feature_vars[feature_id])
+            checkbutton.grid(row=0, column=0, sticky="w")
+            self.feature_checkbuttons[feature_id] = checkbutton
             ttk.Label(cell, text=description, wraplength=360, style="FeatureText.TLabel").grid(
                 row=1, column=0, sticky="w", padx=(24, 0)
             )
 
     def _section(self, parent: ttk.Frame, title: str) -> ttk.LabelFrame:
         return ttk.LabelFrame(parent, text=title, padding=12, style="Card.TLabelframe")
+
+    def _selected_project_type(self) -> str:
+        selected = self.project_type_label.get()
+        return next((value for value, label, _description in PROJECT_TYPES if label == selected), "mobile-web-app")
+
+    def _update_project_type_help(self) -> None:
+        selected = self.project_type_label.get()
+        description = next((description for _value, label, description in PROJECT_TYPES if label == selected), "")
+        self.project_type_help.config(text=description)
+
+    def _on_project_type_changed(self, _event: tk.Event | None = None) -> None:
+        self._update_project_type_help()
+        self._sync_feature_controls()
+
+    def _sync_feature_controls(self) -> None:
+        if self._selected_project_type() != "mobile-web-app":
+            for feature_id, checkbutton in self.feature_checkbuttons.items():
+                if feature_id == "design-starter":
+                    checkbutton.state(["!disabled"])
+                else:
+                    self.feature_vars[feature_id].set(False)
+                    checkbutton.state(["disabled"])
+            return
+
+        for checkbutton in self.feature_checkbuttons.values():
+            checkbutton.state(["!disabled"])
 
     def _browse_target(self) -> None:
         selected = filedialog.askdirectory(title="Выбери папку существующего проекта", initialdir=self.target_path.get())
@@ -227,7 +270,18 @@ class InstallProjectPackApp(tk.Tk):
         return next((value for value, label, _description in DEPLOYMENT_PLANS if label == selected), "decide-later")
 
     def _selected_surfaces(self) -> list[str]:
-        return [surface for surface, value in self.surface_vars.items() if value.get()]
+        project_type = self._selected_project_type()
+        if project_type == "website":
+            return ["website"]
+        if project_type == "landing":
+            return ["landing"]
+        if project_type == "mobile-web-app":
+            return ["web", "mobile", "backend"]
+        if project_type == "desktop-python":
+            return ["desktop-python"]
+        if project_type == "chrome-extension":
+            return ["chrome-extension"]
+        return ["web", "mobile", "backend"]
 
     def _selected_features(self) -> list[str]:
         return [feature for feature, value in self.feature_vars.items() if value.get()]
@@ -267,6 +321,8 @@ class InstallProjectPackApp(tk.Tk):
             self.target_path.get(),
             "--project-name",
             self.project_name.get().strip(),
+            "--project-type",
+            self._selected_project_type(),
             "--active-surfaces",
             ",".join(self._selected_surfaces()),
             "--deployment-plan",
@@ -275,6 +331,8 @@ class InstallProjectPackApp(tk.Tk):
         features = self._selected_features()
         if features:
             command.extend(["--features", ",".join(features)])
+        if not self.include_workflow_docs.get():
+            command.append("--skip-workflow-docs")
 
         self.output_queue.put(("line", "Настраиваю проект для вайбкодинга...\n"))
         process = subprocess.Popen(

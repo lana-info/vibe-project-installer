@@ -26,13 +26,20 @@ Install vibe-coding workflow docs into an existing project:
 python .\scripts\install_project_pack_gui.py --target-path "D:\WorkOS\Existing App"
 ```
 
+The existing-project setup is safe by default:
+
+- it requires an existing project folder;
+- it creates `SETUP_AUDIT.md`;
+- it does not overwrite existing docs/prompts;
+- it does not install dependencies or frameworks automatically.
+
 Or run it without the GUI:
 
 ```powershell
 python .\scripts\install-project-pack.py `
   --target-path "D:\WorkOS\Existing App" `
   --project-name "Existing App" `
-  --active-surfaces web,mobile,backend `
+  --project-type mobile-web-app `
   --deployment-plan decide-later
 ```
 
